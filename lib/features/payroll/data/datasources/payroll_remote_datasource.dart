@@ -329,7 +329,9 @@
 //     }
 //   }
 // }
+import 'package:manzoma/core/error/exceptions.dart';
 import 'package:manzoma/features/payroll/data/models/payroll_detail_model.dart';
+import 'package:manzoma/features/payroll/data/models/payroll_entry_model.dart';
 import 'package:manzoma/features/payroll/data/models/payroll_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -341,6 +343,14 @@ abstract class PayrollRemoteDataSource {
   Future<List<PayrollDetailModel>> generatePayrollEntries({
     required String payrollId,
     required String tenantId,
+  });
+
+  Future<dynamic> computePayrollPeriod({
+    required String tenantId,
+    required DateTime periodStart,
+    required DateTime periodEnd,
+    List<String>? userIds,
+    required bool preview,
   });
 }
 
@@ -446,6 +456,58 @@ class PayrollRemoteDataSourceImpl implements PayrollRemoteDataSource {
         .maybeSingle(); // ✅ بدل single
 
     return response != null ? PayrollModel.fromJson(response) : null;
+  }
+
+  @override
+  Future<dynamic> computePayrollPeriod({
+    required String tenantId,
+    required DateTime periodStart,
+    required DateTime periodEnd,
+    List<String>? userIds,
+    required bool preview,
+  }) async {
+    try {
+      final params = {
+        'p_tenant_id': tenantId,
+        'p_period_start': periodStart.toIso8601String().split('T')[0],
+        'p_period_end': periodEnd.toIso8601String().split('T')[0],
+        'p_user_ids': userIds, // supabase will map to array
+        'p_preview': preview,
+      };
+
+      final res = await client.rpc('compute_payroll_period', params: params);
+
+      if (res == null) {
+        throw const ServerException(
+            message: 'Empty response from compute_payroll_period');
+      }
+
+      // res can be JSON array (preview) or JSON object (persist result)
+      final data = res as dynamic;
+
+      if (preview) {
+        // expect array of objects with computed fields
+        final list = <PayrollEntryModel>[];
+        if (data is List) {
+          for (final item in data) {
+            list.add(PayrollEntryModel.fromJson(item as Map<String, dynamic>));
+          }
+        } else if (data is Map && data['rows'] is List) {
+          for (final item in data['rows']) {
+            list.add(PayrollEntryModel.fromJson(item as Map<String, dynamic>));
+          }
+        }
+        return list;
+      } else {
+        // persist mode: return object { payroll_period_id, inserted_entries }
+        if (data is Map<String, dynamic>) {
+          return data;
+        }
+        return {'result': data};
+      }
+    } catch (e) {
+      throw ServerException(message: e.toString());
+    }
   }
 
   @override
