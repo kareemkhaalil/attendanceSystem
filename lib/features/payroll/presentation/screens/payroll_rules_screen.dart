@@ -1,32 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
-// Data models and enums from the original file
-class PayrollRule {
-  final String id;
-  String name;
-  RuleType type;
-  CalculationMethod calcMethod;
-  double value;
-  String? description;
-  bool isAutomatic;
-  String? customFormula;
-
-  PayrollRule({
-    required this.id,
-    required this.name,
-    required this.type,
-    required this.calcMethod,
-    required this.value,
-    this.description,
-    this.isAutomatic = false,
-    this.customFormula,
-  });
-}
-
-enum RuleType { allowance, deduction }
-
-enum CalculationMethod { fixed, percentage, perHour, custom }
+import 'package:manzoma/core/storage/shared_pref_helper.dart';
+import '../cubit/payroll_cubit.dart';
+import '../cubit/payroll_state.dart';
+import '../../domain/entities/payroll_rules_entity.dart';
 
 class PayrollRulesScreen extends StatefulWidget {
   const PayrollRulesScreen({super.key});
@@ -36,51 +14,22 @@ class PayrollRulesScreen extends StatefulWidget {
 }
 
 class _PayrollRulesScreenState extends State<PayrollRulesScreen> {
-  // Dummy data
-  final List<PayrollRule> _rules = [
-    PayrollRule(
-        id: '1',
-        name: 'بدل مواصلات',
-        type: RuleType.allowance,
-        calcMethod: CalculationMethod.fixed,
-        value: 500,
-        description: 'بدل مواصلات شهري',
-        isAutomatic: true),
-    PayrollRule(
-        id: '2',
-        name: 'خصم تأمينات اجتماعية',
-        type: RuleType.deduction,
-        calcMethod: CalculationMethod.percentage,
-        value: 11,
-        description: 'نسبة التأمينات الاجتماعية',
-        isAutomatic: true),
-    PayrollRule(
-        id: '3',
-        name: 'مكافأة أداء',
-        type: RuleType.allowance,
-        calcMethod: CalculationMethod.fixed,
-        value: 1000,
-        description: 'مكافأة بناءً على الأداء',
-        isAutomatic: false),
-    PayrollRule(
-        id: '4',
-        name: 'خصم غياب يوم',
-        type: RuleType.deduction,
-        calcMethod: CalculationMethod.custom,
-        value: 0,
-        description: 'خصم يومي للغياب بدون إذن',
-        isAutomatic: true,
-        customFormula: '(basicSalary / 30) * absenceDays'),
-  ];
-
-  // Semantic Colors
   static const Color successColor = Color(0xFF10B981);
   static const Color errorColor = Color(0xFFEF4444);
 
-  void _showRuleFormDialog({PayrollRule? rule}) {
-    // Dialog logic remains mostly the same, but with updated UI
+  @override
+  void initState() {
+    super.initState();
+    final user = SharedPrefHelper.getUser();
+    if (user != null) {
+      context.read<PayrollCubit>().fetchRules(user.tenantId);
+    }
+  }
+
+  void _showRuleFormDialog(BuildContext context, {PayrollRuleEntity? rule}) {
     final isEditing = rule != null;
     final formKey = GlobalKey<FormState>();
+
     final nameController = TextEditingController(text: rule?.name ?? '');
     final valueController =
         TextEditingController(text: rule?.value.toString() ?? '');
@@ -88,19 +37,22 @@ class _PayrollRulesScreenState extends State<PayrollRulesScreen> {
         TextEditingController(text: rule?.description ?? '');
     final formulaController =
         TextEditingController(text: rule?.customFormula ?? '');
-    RuleType selectedType = rule?.type ?? RuleType.allowance;
-    CalculationMethod selectedCalcMethod =
-        rule?.calcMethod ?? CalculationMethod.fixed;
+
+    String selectedType = rule?.type ?? 'allowance';
+    String selectedCalcMethod = rule?.calculationMethod ?? 'fixed';
     bool isAutomatic = rule?.isAutomatic ?? false;
+
+    final user = SharedPrefHelper.getUser();
 
     showDialog(
       context: context,
-      builder: (context) {
+      builder: (ctx) {
         return StatefulBuilder(
           builder: (context, setStateInDialog) {
             return AlertDialog(
               shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
+                borderRadius: BorderRadius.circular(16),
+              ),
               title: Text(isEditing ? 'تعديل القاعدة' : 'إضافة قاعدة جديدة'),
               content: Form(
                 key: formKey,
@@ -109,67 +61,64 @@ class _PayrollRulesScreenState extends State<PayrollRulesScreen> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       TextFormField(
-                          controller: nameController,
-                          decoration:
-                              const InputDecoration(labelText: 'اسم القاعدة'),
-                          validator: (v) => v!.isEmpty ? 'مطلوب' : null),
+                        controller: nameController,
+                        decoration:
+                            const InputDecoration(labelText: 'اسم القاعدة'),
+                        validator: (v) => v!.isEmpty ? 'مطلوب' : null,
+                      ),
                       const SizedBox(height: 16),
-                      DropdownButtonFormField<RuleType>(
+                      DropdownButtonFormField<String>(
                         value: selectedType,
                         decoration:
                             const InputDecoration(labelText: 'نوع القاعدة'),
                         items: const [
                           DropdownMenuItem(
-                              value: RuleType.allowance,
-                              child: Text('إضافة (Allowance)')),
+                              value: 'allowance', child: Text('إضافة')),
                           DropdownMenuItem(
-                              value: RuleType.deduction,
-                              child: Text('خصم (Deduction)')),
+                              value: 'deduction', child: Text('خصم')),
                         ],
                         onChanged: (v) =>
                             setStateInDialog(() => selectedType = v!),
                       ),
                       const SizedBox(height: 16),
-                      DropdownButtonFormField<CalculationMethod>(
+                      DropdownButtonFormField<String>(
                         value: selectedCalcMethod,
                         decoration:
                             const InputDecoration(labelText: 'طريقة الحساب'),
                         items: const [
                           DropdownMenuItem(
-                              value: CalculationMethod.fixed,
-                              child: Text('مبلغ ثابت')),
+                              value: 'fixed', child: Text('مبلغ ثابت')),
                           DropdownMenuItem(
-                              value: CalculationMethod.percentage,
-                              child: Text('نسبة مئوية (%)')),
+                              value: 'percentage', child: Text('نسبة مئوية')),
                           DropdownMenuItem(
-                              value: CalculationMethod.perHour,
-                              child: Text('لكل ساعة')),
+                              value: 'per_hour', child: Text('لكل ساعة')),
                           DropdownMenuItem(
-                              value: CalculationMethod.custom,
-                              child: Text('معادلة مخصصة')),
+                              value: 'custom', child: Text('معادلة مخصصة')),
                         ],
                         onChanged: (v) =>
                             setStateInDialog(() => selectedCalcMethod = v!),
                       ),
                       const SizedBox(height: 16),
-                      if (selectedCalcMethod != CalculationMethod.custom)
+                      if (selectedCalcMethod != 'custom')
                         TextFormField(
-                            controller: valueController,
-                            decoration:
-                                const InputDecoration(labelText: 'القيمة'),
-                            keyboardType: TextInputType.number,
-                            validator: (v) => v!.isEmpty ? 'مطلوب' : null),
-                      if (selectedCalcMethod == CalculationMethod.custom)
+                          controller: valueController,
+                          decoration:
+                              const InputDecoration(labelText: 'القيمة'),
+                          keyboardType: TextInputType.number,
+                          validator: (v) => v!.isEmpty ? 'مطلوب' : null,
+                        ),
+                      if (selectedCalcMethod == 'custom')
                         TextFormField(
-                            controller: formulaController,
-                            decoration: const InputDecoration(
-                                labelText: 'المعادلة المخصصة'),
-                            validator: (v) => v!.isEmpty ? 'مطلوب' : null),
+                          controller: formulaController,
+                          decoration: const InputDecoration(
+                              labelText: 'المعادلة المخصصة'),
+                          validator: (v) => v!.isEmpty ? 'مطلوب' : null,
+                        ),
                       const SizedBox(height: 16),
                       TextFormField(
-                          controller: descriptionController,
-                          decoration: const InputDecoration(
-                              labelText: 'الوصف (اختياري)')),
+                        controller: descriptionController,
+                        decoration: const InputDecoration(labelText: 'الوصف'),
+                      ),
                       const SizedBox(height: 16),
                       SwitchListTile(
                         title: const Text('تطبيق تلقائي'),
@@ -184,14 +133,37 @@ class _PayrollRulesScreenState extends State<PayrollRulesScreen> {
               ),
               actions: [
                 TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('إلغاء')),
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('إلغاء'),
+                ),
                 ElevatedButton(
                   style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor),
                   onPressed: () {
                     if (formKey.currentState!.validate()) {
-                      // Save logic...
+                      final newRule = PayrollRuleEntity(
+                        id: rule?.id ?? '', // id فاضي للإضافة
+                        tenantId: user?.tenantId ?? "dummy-tenant",
+                        name: nameController.text,
+                        description: descriptionController.text,
+                        type: selectedType,
+                        calculationMethod: selectedCalcMethod,
+                        value: selectedCalcMethod == 'custom'
+                            ? 0
+                            : double.parse(valueController.text),
+                        isAutomatic: isAutomatic,
+                        customFormula: selectedCalcMethod == 'custom'
+                            ? formulaController.text
+                            : null,
+                        createdAt: rule?.createdAt ?? DateTime.now(),
+                        updatedAt: DateTime.now(),
+                      );
+
+                      if (isEditing) {
+                        context.read<PayrollCubit>().editRule(newRule);
+                      } else {
+                        context.read<PayrollCubit>().addRule(newRule);
+                      }
                       Navigator.pop(context);
                     }
                   },
@@ -220,18 +192,26 @@ class _PayrollRulesScreenState extends State<PayrollRulesScreen> {
           ),
         ],
       ),
-      body: _rules.isEmpty
-          ? _buildEmptyState()
-          : ListView.builder(
-              padding: const EdgeInsets.all(16.0),
-              itemCount: _rules.length,
-              itemBuilder: (context, index) {
-                final rule = _rules[index];
-                return _buildRuleCard(rule);
-              },
-            ),
+      body: BlocBuilder<PayrollCubit, PayrollState>(
+        builder: (context, state) {
+          if (state.status == PayrollStatus.loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state.rules.isEmpty) {
+            return _buildEmptyState(context);
+          }
+          return ListView.builder(
+            padding: const EdgeInsets.all(16.0),
+            itemCount: state.rules.length,
+            itemBuilder: (context, index) {
+              final rule = state.rules[index];
+              return _buildRuleCard(context, rule);
+            },
+          );
+        },
+      ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _showRuleFormDialog,
+        onPressed: () => _showRuleFormDialog(context),
         tooltip: 'إضافة قاعدة جديدة',
         backgroundColor: Theme.of(context).primaryColor,
         child: const Icon(Icons.add, color: Colors.white),
@@ -239,7 +219,7 @@ class _PayrollRulesScreenState extends State<PayrollRulesScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -247,10 +227,8 @@ class _PayrollRulesScreenState extends State<PayrollRulesScreen> {
           Icon(Icons.rule_folder_outlined,
               size: 80, color: Colors.grey.shade400),
           const SizedBox(height: 16),
-          Text(
-            'لا توجد قواعد بعد',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
+          Text('لا توجد قواعد بعد',
+              style: Theme.of(context).textTheme.headlineSmall),
           const SizedBox(height: 8),
           Text(
             'أضف أول قاعدة للبدء في بناء نظام الرواتب',
@@ -261,38 +239,38 @@ class _PayrollRulesScreenState extends State<PayrollRulesScreen> {
           ElevatedButton.icon(
             icon: const Icon(Icons.add),
             label: const Text('إضافة قاعدة جديدة'),
-            onPressed: _showRuleFormDialog,
+            onPressed: () => _showRuleFormDialog(context),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildRuleCard(PayrollRule rule) {
-    final isAllowance = rule.type == RuleType.allowance;
+  Widget _buildRuleCard(BuildContext context, PayrollRuleEntity rule) {
+    final isAllowance = rule.type == 'allowance';
     final color = isAllowance ? successColor : errorColor;
 
     String valueString;
-    switch (rule.calcMethod) {
-      case CalculationMethod.fixed:
+    switch (rule.calculationMethod) {
+      case 'fixed':
         valueString = '${rule.value.toStringAsFixed(0)} EGP';
         break;
-      case CalculationMethod.percentage:
+      case 'percentage':
         valueString = '${rule.value.toStringAsFixed(0)}%';
         break;
-      case CalculationMethod.perHour:
+      case 'per_hour':
         valueString = '${rule.value.toStringAsFixed(0)} EGP/ساعة';
         break;
-      case CalculationMethod.custom:
+      case 'custom':
         valueString = rule.customFormula ?? 'معادلة مخصصة';
         break;
+      default:
+        valueString = rule.value.toString();
     }
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       elevation: 2,
       child: IntrinsicHeight(
         child: Row(
@@ -317,37 +295,33 @@ class _PayrollRulesScreenState extends State<PayrollRulesScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          rule.name,
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
-                              ?.copyWith(fontWeight: FontWeight.bold),
-                        ),
+                        Text(rule.name,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleMedium
+                                ?.copyWith(fontWeight: FontWeight.bold)),
                         if (rule.isAutomatic)
                           const Chip(
                             label: Text('تلقائي'),
                             visualDensity: VisualDensity.compact,
                             padding: EdgeInsets.zero,
-                          )
+                          ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
                       valueString,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            color: color,
-                            fontWeight: FontWeight.bold,
-                          ),
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(color: color, fontWeight: FontWeight.bold),
                     ),
                     if (rule.description != null &&
                         rule.description!.isNotEmpty)
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0),
-                        child: Text(
-                          rule.description!,
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
+                        child: Text(rule.description!,
+                            style: Theme.of(context).textTheme.bodySmall),
                       ),
                   ],
                 ),
@@ -359,12 +333,12 @@ class _PayrollRulesScreenState extends State<PayrollRulesScreen> {
                 IconButton(
                   icon: Icon(Icons.edit_outlined,
                       color: Theme.of(context).primaryColor),
-                  onPressed: () => _showRuleFormDialog(rule: rule),
+                  onPressed: () => _showRuleFormDialog(context, rule: rule),
                 ),
                 IconButton(
                   icon: const Icon(Icons.delete_outline, color: errorColor),
                   onPressed: () {
-                    setState(() => _rules.remove(rule));
+                    context.read<PayrollCubit>().removeRule(rule.id);
                   },
                 ),
               ],

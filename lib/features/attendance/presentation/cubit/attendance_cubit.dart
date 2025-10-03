@@ -5,8 +5,12 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:manzoma/core/location/location_helper.dart';
 import 'package:manzoma/core/storage/shared_pref_helper.dart';
+import 'package:manzoma/features/attendance/data/datasources/attendance_rules_remote_datasource.dart';
+import 'package:manzoma/features/attendance/domain/entities/attendance_rule_entity.dart';
+import 'package:manzoma/features/attendance/domain/usecases/assign_rule_to_user_usecase.dart';
 import 'package:manzoma/features/attendance/domain/usecases/check_in_with_qr_usecase.dart';
 import 'package:manzoma/features/attendance/domain/usecases/get_attendance_history_tennent_usecase.dart';
+import 'package:manzoma/features/attendance/domain/usecases/get_metrics_usecase.dart';
 import 'package:manzoma/features/branches/domain/entities/branch_entity.dart';
 import 'package:manzoma/features/branches/domain/usecases/get_branches_usecase.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -26,6 +30,9 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   final GetAttendanceHistoryByTennentidUseCase
       _getAttendanceHistoryByTennentidUseCase;
   final GetBranchesUseCase _getBranchesUseCase;
+  final AssignRuleToUserUsecase _assignRuleToUserUseCase;
+  final GetMetricsUseCase _getMetricsUseCase;
+  final AttendanceRulesRemoteDataSource _remote;
 
   static const int _limit = 20;
   int _currentOffset = 0;
@@ -39,6 +46,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
   int _qrWindowSeconds = 58;
   String? _lastBranchId;
   AttendanceCubit({
+    AttendanceRulesRemoteDataSource? remote,
     CheckInUseCase? checkInUseCase,
     CheckInWithQrUseCase? checkInWithQrUseCase,
     CheckOutUseCase? checkOutUseCase,
@@ -46,6 +54,8 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     GetAttendanceHistoryByTennentidUseCase?
         getAttendanceHistoryByTennentidUseCase,
     GetBranchesUseCase? getBranchesUseCase,
+    GetMetricsUseCase? getMetricsUseCase,
+    AssignRuleToUserUsecase? assignRuleToUserUseCase,
     SupabaseClient? supabaseClient, // جديد
   })  : _checkInUseCase = checkInUseCase ?? sl<CheckInUseCase>(),
         _checkInWithQrUseCase =
@@ -57,6 +67,10 @@ class AttendanceCubit extends Cubit<AttendanceState> {
             getAttendanceHistoryByTennentidUseCase ??
                 sl<GetAttendanceHistoryByTennentidUseCase>(),
         _getBranchesUseCase = getBranchesUseCase ?? sl<GetBranchesUseCase>(),
+        _getMetricsUseCase = getMetricsUseCase ?? sl<GetMetricsUseCase>(),
+        _assignRuleToUserUseCase =
+            assignRuleToUserUseCase ?? sl<AssignRuleToUserUsecase>(),
+        _remote = remote ?? sl<AttendanceRulesRemoteDataSource>(),
         _supabase = supabaseClient ?? Supabase.instance.client, // جديد
         super(AttendanceInitial());
   @override
@@ -416,6 +430,72 @@ class AttendanceCubit extends Cubit<AttendanceState> {
       },
     );
   }
+
+  // داخل AttendanceCubit
+  Future<void> assignRuleToUser(
+      String userId, Map<String, dynamic> ruleDetails) async {
+    emit(AttendanceLoading());
+    try {
+      await _assignRuleToUserUseCase(userId, ruleDetails);
+      emit(AttendanceRuleAssigned());
+    } catch (e) {
+      emit(AttendanceError(message: e.toString()));
+    }
+  }
+
+  Future<void> loadMetricsForToday(String userId) async {
+    emit(AttendanceLoading());
+    try {
+      final result = await _getMetricsUseCase(
+          GetMetricsParams(userId: userId, date: DateTime.now()));
+      result.fold(
+        (failure) => emit(AttendanceMetricsError(message: failure.message)),
+        (metrics) => emit(AttendanceMetricsLoaded(metrics: metrics)),
+      );
+    } catch (e) {
+      emit(AttendanceMetricsError(message: e.toString()));
+    }
+  }
+
+  Future<void> loadRules(String tenantId) async {
+    emit(AttendanceRulesLoading());
+    try {
+      final rules = await _remote.getRules(tenantId);
+      emit(AttendanceRulesLoaded(rules: rules));
+    } catch (e) {
+      emit(AttendanceRulesError(message: e.toString()));
+    }
+  }
+
+  Future<void> addRule(AttendanceRuleEntity rule) async {
+    try {
+      await _remote.addRule(rule);
+      final rules = await _remote.getRules(rule.tenantId);
+      emit(AttendanceRulesLoaded(rules: rules)); // 👈 مباشر
+    } catch (e) {
+      emit(AttendanceRulesError(message: e.toString()));
+    }
+  }
+
+  Future<void> updateRule(AttendanceRuleEntity rule) async {
+    try {
+      await _remote.updateRule(rule);
+      final rules = await _remote.getRules(rule.tenantId);
+      emit(AttendanceRulesLoaded(rules: rules)); // 👈 مباشر
+    } catch (e) {
+      emit(AttendanceRulesError(message: e.toString()));
+    }
+  }
+
+// Future<void> deleteRule(String tenantId, String ruleId) async {
+//   try {
+//     await _remote.deleteRule(ruleId);
+//     // بعد الحذف أعمل refresh من السيرفر
+//     await loadRules(tenantId);
+//   } catch (e) {
+//     emit(AttendanceRulesError(message: e.toString()));
+//   }
+// }
 
   void resetState() {
     _currentOffset = 0;

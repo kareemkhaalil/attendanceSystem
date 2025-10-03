@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:manzoma/features/attendance/domain/entities/attendance_rule_entity.dart';
 import '../../domain/entities/attendance_entity.dart';
 
 abstract class AttendanceState extends Equatable {
@@ -62,9 +63,47 @@ class AttendanceError extends AttendanceState {
   List<Object> get props => [message];
 }
 
+class AttendanceRuleAssigned extends AttendanceState {}
+
+class AttendanceMetricsLoaded extends AttendanceState {
+  final Map<String, dynamic> metrics;
+  const AttendanceMetricsLoaded({required this.metrics});
+
+  @override
+  List<Object?> get props => [metrics];
+}
+
+class AttendanceRulesLoading extends AttendanceState {}
+
+class AttendanceRulesLoaded extends AttendanceState {
+  final List<AttendanceRuleEntity> rules;
+  const AttendanceRulesLoaded({required this.rules});
+
+  @override
+  @override
+  List<Object?> get props => [rules, DateTime.now()];
+}
+
+class AttendanceRulesError extends AttendanceState {
+  final String message;
+  const AttendanceRulesError({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+
+class AttendanceMetricsError extends AttendanceState {
+  final String message;
+  const AttendanceMetricsError({required this.message});
+
+  @override
+  List<Object?> get props => [message];
+}
+
 /* =========================
    حالات جلسة الـ QR (موحّدة هنا)
    ========================= */
+
 class AttendanceQrCreating extends AttendanceState {}
 
 class AttendanceQrActive extends AttendanceState {

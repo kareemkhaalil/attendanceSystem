@@ -222,6 +222,7 @@
 // }
 
 import 'package:dartz/dartz.dart';
+import 'package:manzoma/features/payroll/domain/entities/payroll_detail_entity.dart';
 import 'package:manzoma/features/payroll/domain/repositories/payroll_repository.dart';
 import '../../domain/entities/payroll_entity.dart';
 import '../datasources/payroll_remote_datasource.dart';
@@ -322,5 +323,19 @@ class PayrollRepositoryImpl implements PayrollRepository {
     //   return Left(ServerFailure(message: e.message));
     // }
     throw UnimplementedError();
+  }
+
+  @override
+  Future<Either<Failure, List<PayrollDetailEntity>>> generatePayrollEntries(
+      String payrollId, String tenantId) async {
+    try {
+      final model = await remoteDataSource.generatePayrollEntries(
+        payrollId: payrollId,
+        tenantId: tenantId,
+      );
+      return Right(model);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(message: e.message));
+    }
   }
 }

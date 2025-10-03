@@ -1,12 +1,18 @@
 import 'package:get_it/get_it.dart';
 import 'package:manzoma/core/localization/cubit/locale_cubit.dart';
 import 'package:manzoma/core/theme/cubit/theme_cubit.dart';
+import 'package:manzoma/features/attendance/data/datasources/attendance_rules_remote_datasource.dart';
+import 'package:manzoma/features/attendance/data/repositories/attendance_rules_repository_impl.dart';
+import 'package:manzoma/features/attendance/domain/repositories/attendance_rules_repository.dart';
+import 'package:manzoma/features/attendance/domain/usecases/assign_rule_to_user_usecase.dart';
 import 'package:manzoma/features/attendance/domain/usecases/check_in_with_qr_usecase.dart';
 import 'package:manzoma/features/attendance/domain/usecases/get_attendance_history_tennent_usecase.dart';
+import 'package:manzoma/features/attendance/domain/usecases/get_metrics_usecase.dart';
 import 'package:manzoma/features/attendance/presentation/cubit/attendance_cubit.dart';
 import 'package:manzoma/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:manzoma/features/auth/presentation/cubit/login_cubit.dart';
 import 'package:manzoma/features/clients/presentation/cubit/client_cubit.dart';
+import 'package:manzoma/features/payroll/domain/usecases/generate_payroll_entries_usecase.dart';
 import 'package:manzoma/features/payroll/presentation/cubit/payroll_cubit.dart';
 import 'package:manzoma/features/users/presentation/cubit/user_cubit.dart';
 import 'package:manzoma/features/branches/presentation/cubit/branch_cubit.dart';
@@ -125,6 +131,9 @@ Future<void> init() async {
         createPayrollRule: sl(),
         updatePayrollRule: sl(),
         deletePayrollRule: sl(),
+        generatePayrollEntries: sl(),
+        getClientsUseCase: sl(),
+        getUsersUseCase: sl(),
       ));
 
   //! -------------------- UseCases --------------------
@@ -165,6 +174,9 @@ Future<void> init() async {
       () => GetAttendanceHistoryUseCase(sl()));
   sl.registerLazySingleton<GetAttendanceHistoryByTennentidUseCase>(
       () => GetAttendanceHistoryByTennentidUseCase(sl()));
+  sl.registerLazySingleton<AssignRuleToUserUsecase>(
+      () => AssignRuleToUserUsecase(sl()));
+  sl.registerLazySingleton<GetMetricsUseCase>(() => GetMetricsUseCase(sl()));
 
   // Payroll
   sl.registerLazySingleton<CreatePayroll>(() => CreatePayroll(sl()));
@@ -182,6 +194,8 @@ Future<void> init() async {
   sl.registerLazySingleton<CreatePayrollRule>(() => CreatePayrollRule(sl()));
   sl.registerLazySingleton<UpdatePayrollRule>(() => UpdatePayrollRule(sl()));
   sl.registerLazySingleton<DeletePayrollRule>(() => DeletePayrollRule(sl()));
+  sl.registerLazySingleton<GeneratePayrollEntries>(
+      () => GeneratePayrollEntries(sl()));
 
   //! -------------------- Repositories --------------------
   // Auth
@@ -213,6 +227,8 @@ Future<void> init() async {
         remoteDataSource: sl(),
         networkInfo: sl(),
       ));
+  sl.registerLazySingleton<AttendanceRulesRepository>(
+      () => AttendanceRulesRepositoryImpl(remote: sl()));
 
   // Payroll
   sl.registerLazySingleton<PayrollRepository>(() => PayrollRepositoryImpl(
@@ -246,6 +262,11 @@ Future<void> init() async {
   // Attendance
   sl.registerLazySingleton<AttendanceRemoteDataSource>(
       () => AttendanceRemoteDataSourceImpl(supabaseClient: sl()));
+  sl.registerLazySingleton<AttendanceRulesRemoteDataSource>(
+    () => AttendanceRulesRemoteDataSourceImpl(
+      supabase: sl(),
+    ),
+  );
 
   // Payroll
   sl.registerLazySingleton<PayrollRemoteDataSource>(
@@ -254,8 +275,8 @@ Future<void> init() async {
   sl.registerLazySingleton<PayrollDetailRemoteDataSource>(
       () => PayrollDetailRemoteDataSourceImpl(client: sl()));
 
-  sl.registerLazySingleton<PayrollRulesRemoteDataSource>(
-      () => PayrollRulesRemoteDataSourceImpl(client: sl()));
+  sl.registerLazySingleton<PayrollRulesDataSource>(
+      () => PayrollRulesDataSource(supabase: sl()));
 
   //! -------------------- Core --------------------
   sl.registerLazySingleton<NetworkInfo>(() => AlwaysConnectedNetworkInfo());

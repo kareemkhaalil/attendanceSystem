@@ -329,6 +329,7 @@
 //     }
 //   }
 // }
+import 'package:manzoma/features/payroll/data/models/payroll_detail_model.dart';
 import 'package:manzoma/features/payroll/data/models/payroll_model.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -337,6 +338,10 @@ abstract class PayrollRemoteDataSource {
   Future<PayrollModel?> getPayrollById(String payrollId);
   Future<PayrollModel?> createPayroll(PayrollModel payroll);
   Future<void> deletePayroll(String payrollId);
+  Future<List<PayrollDetailModel>> generatePayrollEntries({
+    required String payrollId,
+    required String tenantId,
+  });
 }
 
 class PayrollRemoteDataSourceImpl implements PayrollRemoteDataSource {
@@ -365,6 +370,71 @@ class PayrollRemoteDataSourceImpl implements PayrollRemoteDataSource {
         .maybeSingle(); // ✅ بدل single
 
     return response != null ? PayrollModel.fromJson(response) : null;
+  }
+
+  @override
+  Future<List<PayrollDetailModel>> generatePayrollEntries({
+    required String payrollId,
+    required String tenantId,
+  }) async {
+    // 1. هات كل الموظفين في التينانت
+    final users =
+        await client.from('users').select('id').eq('tenant_id', tenantId);
+
+    final List<PayrollDetailModel> entries = [];
+
+    for (final u in users) {
+      final userId = u['id'] as String;
+
+      // 2. نجيب الـ Metrics (Attendance) من الـ RPC
+      final metrics = await client.rpc('compute_shift_metrics', params: {
+        'p_user_id': userId,
+        'p_date':
+            DateTime.now().toIso8601String().split('T')[0], // مبدئيًا يومي
+      });
+
+      // 3. نجيب Payroll Rules بتاعت الموظف
+      final rules = await client
+          .from('employee_salary_rules')
+          .select('payroll_rules(*)')
+          .eq('user_id', userId);
+
+      // 4. نحسب الراتب المبدئي
+      double netPay = 0;
+      for (final r in rules) {
+        final rule = r['payroll_rules'];
+        if (rule['type'] == 'allowance') {
+          netPay += rule['amount'];
+        } else if (rule['type'] == 'deduction') {
+          netPay -= rule['amount'];
+        }
+      }
+
+      // خصومات الغياب / التأخير / إضافي
+      final late =
+          (metrics['lateness_minutes'] ?? 0) * 2; // مثال: 2 جنيه للدقيقة
+      final overtime = (metrics['overtime_minutes'] ?? 0) * 1.5; // مثال
+
+      netPay = netPay - late + overtime;
+
+      // 5. خزّن entry
+      final inserted = await client
+          .from('payroll_details')
+          .insert({
+            'payroll_id': payrollId,
+            'user_id': userId,
+            'worked_hours': metrics['worked_hours'] ?? 0,
+            'lateness_minutes': metrics['lateness_minutes'] ?? 0,
+            'overtime_minutes': metrics['overtime_minutes'] ?? 0,
+            'net_pay': netPay,
+          })
+          .select()
+          .single();
+
+      entries.add(PayrollDetailModel.fromJson(inserted));
+    }
+
+    return entries;
   }
 
   @override

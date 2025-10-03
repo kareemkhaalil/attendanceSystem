@@ -5,7 +5,9 @@ class PayrollDetailEntity extends Equatable {
   final String payrollId;
   final String tenantId;
   final String ruleName;
+  final String calculationMethod;
   final String type; // allowance | deduction
+  final DateTime createdAt;
   final double amount;
 
   const PayrollDetailEntity({
@@ -13,7 +15,9 @@ class PayrollDetailEntity extends Equatable {
     required this.payrollId,
     required this.tenantId,
     required this.ruleName,
+    required this.calculationMethod,
     required this.type,
+    required this.createdAt,
     required this.amount,
   });
 
@@ -23,7 +27,9 @@ class PayrollDetailEntity extends Equatable {
         payrollId,
         tenantId,
         ruleName,
+        calculationMethod,
         type,
+        createdAt,
         amount,
       ];
 }

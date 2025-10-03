@@ -51,6 +51,7 @@
 // }
 
 import 'package:dartz/dartz.dart';
+import 'package:manzoma/features/payroll/domain/entities/payroll_detail_entity.dart';
 import '../entities/payroll_entity.dart';
 import '../../../../core/error/failures.dart';
 
@@ -60,4 +61,8 @@ abstract class PayrollRepository {
   Future<Either<Failure, PayrollEntity>> createPayroll(PayrollEntity payroll);
   Future<Either<Failure, PayrollEntity>> updatePayroll(PayrollEntity payroll);
   Future<Either<Failure, void>> deletePayroll(String id);
+  Future<Either<Failure, List<PayrollDetailEntity>>> generatePayrollEntries(
+    String payrollId,
+    String tenantId,
+  );
 }
