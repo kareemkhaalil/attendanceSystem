@@ -132,6 +132,8 @@ Future<void> init() async {
         updatePayrollRule: sl(),
         deletePayrollRule: sl(),
         generatePayrollEntries: sl(),
+        getClientsUseCase: sl(),
+        getUsersUseCase: sl(),
       ));
 
   //! -------------------- UseCases --------------------

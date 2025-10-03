@@ -6,12 +6,26 @@ import '../cubit/payroll_cubit.dart';
 import '../cubit/payroll_state.dart';
 import '../../domain/entities/payroll_rules_entity.dart';
 
-class PayrollRulesScreen extends StatelessWidget {
-  PayrollRulesScreen({super.key});
+class PayrollRulesScreen extends StatefulWidget {
+  const PayrollRulesScreen({super.key});
 
+  @override
+  State<PayrollRulesScreen> createState() => _PayrollRulesScreenState();
+}
+
+class _PayrollRulesScreenState extends State<PayrollRulesScreen> {
   static const Color successColor = Color(0xFF10B981);
   static const Color errorColor = Color(0xFFEF4444);
-  final user = SharedPrefHelper.getUser();
+
+  @override
+  void initState() {
+    super.initState();
+    final user = SharedPrefHelper.getUser();
+    if (user != null) {
+      context.read<PayrollCubit>().fetchRules(user.tenantId);
+    }
+  }
+
   void _showRuleFormDialog(BuildContext context, {PayrollRuleEntity? rule}) {
     final isEditing = rule != null;
     final formKey = GlobalKey<FormState>();
@@ -27,6 +41,8 @@ class PayrollRulesScreen extends StatelessWidget {
     String selectedType = rule?.type ?? 'allowance';
     String selectedCalcMethod = rule?.calculationMethod ?? 'fixed';
     bool isAutomatic = rule?.isAutomatic ?? false;
+
+    final user = SharedPrefHelper.getUser();
 
     showDialog(
       context: context,
@@ -127,8 +143,7 @@ class PayrollRulesScreen extends StatelessWidget {
                     if (formKey.currentState!.validate()) {
                       final newRule = PayrollRuleEntity(
                         id: rule?.id ?? '', // id فاضي للإضافة
-                        tenantId: user!.tenantId ??
-                            "dummy-tenant", // TODO: هتجيب tenantId من السياق
+                        tenantId: user?.tenantId ?? "dummy-tenant",
                         name: nameController.text,
                         description: descriptionController.text,
                         type: selectedType,

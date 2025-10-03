@@ -12,7 +12,7 @@ class UserInitial extends UserState {}
 class UserLoading extends UserState {}
 
 class UserLoaded extends UserState {
-  final List<UserEntity> users;
+  final List<UserModel> users;
 
   const UserLoaded({required this.users});
 

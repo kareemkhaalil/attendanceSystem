@@ -1,6 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:manzoma/core/enums/user_role.dart';
+import 'package:manzoma/features/clients/domain/usecases/get_clients_usecase.dart';
 import 'package:manzoma/features/payroll/domain/entities/payroll_rules_entity.dart';
 import 'package:manzoma/features/payroll/domain/usecases/generate_payroll_entries_usecase.dart';
+import 'package:manzoma/features/users/domain/usecases/get_users_usecase.dart';
 import 'payroll_state.dart';
 import '../../domain/entities/payroll_entity.dart';
 import '../../domain/entities/payroll_detail_entity.dart';
@@ -31,6 +34,8 @@ class PayrollCubit extends Cubit<PayrollState> {
   final UpdatePayrollRule updatePayrollRule;
   final DeletePayrollRule deletePayrollRule;
   final GeneratePayrollEntries generatePayrollEntries;
+  final GetClientsUseCase getClientsUseCase;
+  final GetUsersUseCase getUsersUseCase;
 
   PayrollCubit({
     required this.getPayrolls,
@@ -46,6 +51,8 @@ class PayrollCubit extends Cubit<PayrollState> {
     required this.updatePayrollRule,
     required this.deletePayrollRule,
     required this.generatePayrollEntries,
+    required this.getClientsUseCase,
+    required this.getUsersUseCase,
   }) : super(const PayrollState());
 
   // ---- Payroll ----
@@ -229,6 +236,32 @@ class PayrollCubit extends Cubit<PayrollState> {
           status: PayrollStatus.failure, errorMessage: failure.message)),
       (entries) =>
           emit(state.copyWith(status: PayrollStatus.success, details: entries)),
+    );
+  }
+
+  Future<void> fetchClients() async {
+    emit(state.copyWith(status: PayrollStatus.loading));
+    final result = await getClientsUseCase(
+      const GetClientsParams(),
+    );
+    result.fold(
+      (failure) => emit(state.copyWith(
+          status: PayrollStatus.failure, errorMessage: failure.message)),
+      (clients) =>
+          emit(state.copyWith(status: PayrollStatus.success, clients: clients)),
+    );
+  }
+
+  Future<void> fetchEmployees(String tenantId) async {
+    emit(state.copyWith(status: PayrollStatus.loading));
+    final result = await getUsersUseCase(
+      GetUsersParams(tenantId: tenantId, role: UserRole.employee),
+    );
+    result.fold(
+      (failure) => emit(state.copyWith(
+          status: PayrollStatus.failure, errorMessage: failure.message)),
+      (employees) => emit(
+          state.copyWith(status: PayrollStatus.success, employees: employees)),
     );
   }
 }
