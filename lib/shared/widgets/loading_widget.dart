@@ -77,7 +77,7 @@ class _LoadingWidgetState extends State<LoadingWidget>
     final size = widget.size ?? 80.w;
     
     return Container(
-      color: widget.backgroundColor ?? Theme.of(context).scaffoldBackgroundColor.withOpacity(0.9),
+      color: widget.backgroundColor ?? Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.9),
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -98,8 +98,8 @@ class _LoadingWidgetState extends State<LoadingWidget>
                           gradient: LinearGradient(
                             colors: [
                               Theme.of(context).colorScheme.primary,
-                              Theme.of(context).colorScheme.primary.withOpacity(0.8),
-                              Theme.of(context).colorScheme.primary.withOpacity(0.6),
+                              Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
+                              Theme.of(context).colorScheme.primary.withValues(alpha: 0.6),
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
@@ -107,7 +107,7 @@ class _LoadingWidgetState extends State<LoadingWidget>
                           borderRadius: BorderRadius.circular(size / 4),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFF2563EB).withOpacity(0.3),
+                              color: const Color(0xFF2563EB).withValues(alpha: 0.3),
                               blurRadius: 20,
                               offset: const Offset(0, 10),
                             ),
@@ -185,7 +185,7 @@ class LoadingOverlay extends StatelessWidget {
 
     return Positioned.fill(
       child: Material(
-        color: Colors.black.withOpacity(0.5),
+        color: Colors.black.withValues(alpha: 0.5),
         child: LoadingWidget(
           message: message,
           backgroundColor: Colors.transparent,

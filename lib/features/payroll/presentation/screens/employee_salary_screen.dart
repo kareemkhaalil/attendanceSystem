@@ -271,7 +271,7 @@ class _EmployeeSalaryScreenState extends State<EmployeeSalaryScreen> {
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: Theme.of(context).primaryColor.withOpacity(0.05),
+      color: Theme.of(context).primaryColor.withValues(alpha: 0.05),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -389,7 +389,7 @@ class _EmployeeSalaryScreenState extends State<EmployeeSalaryScreen> {
         color: Theme.of(context).scaffoldBackgroundColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, -4),
           )

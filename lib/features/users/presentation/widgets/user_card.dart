@@ -36,7 +36,7 @@ class UserCard extends StatelessWidget {
               // Avatar
               CircleAvatar(
                 radius: 24.r,
-                backgroundColor: _getRoleColor(user.role).withOpacity(0.1),
+                backgroundColor: _getRoleColor(user.role).withValues(alpha: 0.1),
                 child: user.avatar != null
                     ? ClipRRect(
                         borderRadius: BorderRadius.circular(24.r),
@@ -84,7 +84,7 @@ class UserCard extends StatelessWidget {
                             vertical: 4.h,
                           ),
                           decoration: BoxDecoration(
-                            color: _getRoleColor(user.role).withOpacity(0.1),
+                            color: _getRoleColor(user.role).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12.r),
                           ),
                           child: Text(
@@ -104,8 +104,8 @@ class UserCard extends StatelessWidget {
                           ),
                           decoration: BoxDecoration(
                             color: user.isActive
-                                ? Colors.green.withOpacity(0.1)
-                                : Colors.red.withOpacity(0.1),
+                                ? Colors.green.withValues(alpha: 0.1)
+                                : Colors.red.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12.r),
                           ),
                           child: Text(
