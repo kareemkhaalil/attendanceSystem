@@ -38,6 +38,15 @@ class UserUpdated extends UserState {
   List<Object> get props => [users];
 }
 
+class UserDeleted extends UserState {
+  final String userId;
+
+  const UserDeleted({required this.userId});
+
+  @override
+  List<Object> get props => [userId];
+}
+
 class UserError extends UserState {
   final String message;
 

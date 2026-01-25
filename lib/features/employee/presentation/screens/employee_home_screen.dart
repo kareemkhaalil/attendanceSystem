@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
+import 'package:manzoma/core/location/location_helper.dart';
 import 'package:manzoma/core/storage/shared_pref_helper.dart';
 import 'package:manzoma/core/utils/responsive.util.dart';
 import 'package:manzoma/features/attendance/presentation/cubit/attendance_cubit.dart';
@@ -264,7 +265,7 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen>
                       child: BackdropFilter(
                         filter: ImageFilter.blur(sigmaX: 2, sigmaY: 2),
                         child: Container(
-                          color: Colors.black.withOpacity(0.12),
+                          color: Colors.black.withValues(alpha: 0.12),
                           child: const Center(
                             child: SizedBox(
                               width: 40,
@@ -285,7 +286,7 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen>
   }
 
   // ================= Actions =================
-  void _handleAttendanceAction(BuildContext context, AttendanceState state) {
+  Future<void> _handleAttendanceAction(BuildContext context, AttendanceState state) async {
     final cubit = context.read<AttendanceCubit>();
     final user = SharedPrefHelper.getUser();
 
@@ -299,7 +300,15 @@ class _EmployeeHomeScreenState extends State<EmployeeHomeScreen>
     if (state is AttendanceCheckInSuccess) {
       cubit.checkOut(attendanceId: state.attendance.id);
     } else {
-      cubit.checkIn(userId: user.id, location: ""); // TODO: ضع اللوكيشن الحقيقي
+      // Get current location for check-in
+      String location = "";
+      try {
+        final position = await LocationHelper.getCurrentLocation();
+        location = "${position.latitude},${position.longitude}";
+      } catch (e) {
+        _showCustomDialog("تعذر الحصول على الموقع: $e", color: Colors.orange);
+      }
+      cubit.checkIn(userId: user.id, location: location);
     }
   }
 
@@ -396,12 +405,12 @@ class _AuroraHeader extends StatelessWidget {
             Positioned(
               top: -40,
               right: -20,
-              child: _softCircle(160, Colors.white.withOpacity(0.08)),
+              child: _softCircle(160, Colors.white.withValues(alpha: 0.08)),
             ),
             Positioned(
               bottom: -30,
               left: -20,
-              child: _softCircle(120, Colors.white.withOpacity(0.06)),
+              child: _softCircle(120, Colors.white.withValues(alpha: 0.06)),
             ),
 
             // المحتوى
@@ -450,12 +459,12 @@ class _AuroraHeader extends StatelessWidget {
                   Row(
                     children: [
                       Icon(Icons.access_time,
-                          size: 16, color: Colors.white.withOpacity(.9)),
+                          size: 16, color: Colors.white.withValues(alpha: .9)),
                       const SizedBox(width: 6),
                       Text(
                         timeStr,
                         style: TextStyle(
-                            color: Colors.white.withOpacity(.95),
+                            color: Colors.white.withValues(alpha: .95),
                             fontWeight: FontWeight.w600),
                       ),
                     ],
@@ -547,7 +556,7 @@ class _NeonCheckButton extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                          color: base.withOpacity(.35),
+                          color: base.withValues(alpha: .35),
                           blurRadius: 28,
                           spreadRadius: 1),
                     ],
@@ -565,7 +574,7 @@ class _NeonCheckButton extends StatelessWidget {
               color: Colors.white,
               boxShadow: [
                 BoxShadow(
-                    color: Colors.black.withOpacity(.06),
+                    color: Colors.black.withValues(alpha: .06),
                     blurRadius: 18,
                     offset: const Offset(0, 6)),
               ],
@@ -639,11 +648,11 @@ class _ActionPillsRow extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(18),
                     gradient: LinearGradient(
-                      colors: [color.withOpacity(.12), color.withOpacity(.06)],
+                      colors: [color.withValues(alpha: .12), color.withValues(alpha: .06)],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                     ),
-                    border: Border.all(color: color.withOpacity(.2)),
+                    border: Border.all(color: color.withValues(alpha: .2)),
                   ),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -653,7 +662,7 @@ class _ActionPillsRow extends StatelessWidget {
                         width: 44,
                         height: 44,
                         decoration: BoxDecoration(
-                          color: color.withOpacity(.18),
+                          color: color.withValues(alpha: .18),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Icon(icon, color: color),
@@ -696,11 +705,11 @@ class _ActionPillsRow extends StatelessWidget {
         //           decoration: BoxDecoration(
         //             borderRadius: BorderRadius.circular(18),
         //             gradient: LinearGradient(
-        //               colors: [color.withOpacity(.12), color.withOpacity(.06)],
+        //               colors: [color.withValues(alpha: .12), color.withValues(alpha: .06)],
         //               begin: Alignment.topLeft,
         //               end: Alignment.bottomRight,
         //             ),
-        //             border: Border.all(color: color.withOpacity(.2)),
+        //             border: Border.all(color: color.withValues(alpha: .2)),
         //           ),
         //           padding:
         //               const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -710,7 +719,7 @@ class _ActionPillsRow extends StatelessWidget {
         //                 width: 44,
         //                 height: 44,
         //                 decoration: BoxDecoration(
-        //                   color: color.withOpacity(.18),
+        //                   color: color.withValues(alpha: .18),
         //                   borderRadius: BorderRadius.circular(12),
         //                 ),
         //                 child: Icon(icon, color: color),
@@ -763,7 +772,7 @@ class _SparklineCard extends StatelessWidget {
         border: Border.all(color: const Color(0x11000000)),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(.04),
+              color: Colors.black.withValues(alpha: .04),
               blurRadius: 18,
               offset: const Offset(0, 8)),
         ],
@@ -797,7 +806,7 @@ class _SparklineCard extends StatelessWidget {
                         child: Text(
                           labels[i],
                           style: TextStyle(
-                            color: Colors.black.withOpacity(.5),
+                            color: Colors.black.withValues(alpha: .5),
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
@@ -852,7 +861,7 @@ class _SparklinePainter extends CustomPainter {
 
     final paintFill = Paint()
       ..shader = LinearGradient(
-        colors: [accent.withOpacity(.28), Colors.transparent],
+        colors: [accent.withValues(alpha: .28), Colors.transparent],
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
@@ -866,7 +875,7 @@ class _SparklinePainter extends CustomPainter {
 
     // ظل خفيف
     final paintShadow = Paint()
-      ..color = accent.withOpacity(.18)
+      ..color = accent.withValues(alpha: .18)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 6
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 6);
@@ -909,7 +918,7 @@ class _PillBottomNav extends StatelessWidget {
           borderRadius: BorderRadius.circular(22),
           boxShadow: [
             BoxShadow(
-                color: Colors.black.withOpacity(.08),
+                color: Colors.black.withValues(alpha: .08),
                 blurRadius: 18,
                 offset: const Offset(0, 8)),
           ],

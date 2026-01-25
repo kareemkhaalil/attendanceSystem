@@ -11,6 +11,12 @@
 migrate_working_dir/
 .zip
 
+# Environment variables - NEVER commit these
+.env
+.env.local
+.env.*.local
+*.env
+
 # IntelliJ related
 *.iml
 *.ipr
@@ -55,3 +61,8 @@ lib.zip
 lib11.zip
 database_schema.sql
 lib (8).zip
+lib (9).zip
+
+# Backup files
+*.bak
+*.backup

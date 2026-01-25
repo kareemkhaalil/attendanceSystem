@@ -127,7 +127,7 @@ class _ClientsViewState extends State<ClientsView> {
                         },
                       ),
                 filled: true,
-                fillColor: color.surfaceContainerHighest.withOpacity(0.3),
+                fillColor: color.surfaceContainerHighest.withValues(alpha: 0.3),
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 border: OutlineInputBorder(
@@ -386,7 +386,7 @@ class _ClientsViewState extends State<ClientsView> {
         return Container(
           height: 88,
           decoration: BoxDecoration(
-            color: color.surfaceContainerHighest.withOpacity(0.4),
+            color: color.surfaceContainerHighest.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(14),
           ),
         );
@@ -403,7 +403,7 @@ class _ClientsViewState extends State<ClientsView> {
         color: Theme.of(context)
             .colorScheme
             .surfaceContainerHighest
-            .withOpacity(0.3),
+            .withValues(alpha: 0.3),
       ),
       child: const SizedBox(
         height: 28,

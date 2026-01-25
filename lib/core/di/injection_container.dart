@@ -39,6 +39,7 @@ import '../../features/users/domain/repositories/user_repository.dart';
 import '../../features/users/domain/usecases/get_users_usecase.dart';
 import '../../features/users/domain/usecases/create_user_usecase.dart';
 import '../../features/users/domain/usecases/update_users_usecase.dart';
+import '../../features/users/domain/usecases/delete_user_usecase.dart';
 
 // Branches
 import '../../features/branches/presentation/cubit/branch_cubit.dart';
@@ -133,6 +134,7 @@ Future<void> init() async {
         getUsersUseCase: sl(),
         createUserUseCase: sl(),
         updateUsersUsecase: sl(),
+        deleteUserUseCase: sl(),
       ));
 
   sl.registerLazySingleton<UserRemoteDataSource>(
@@ -145,6 +147,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetUsersUseCase(sl()));
   sl.registerLazySingleton(() => CreateUserUseCase(sl()));
   sl.registerLazySingleton(() => UpdateUsersUsecase(sl()));
+  sl.registerLazySingleton(() => DeleteUserUseCase(sl()));
 
   //! ================= BRANCHES =================
   sl.registerFactory<BranchCubit>(() => BranchCubit(

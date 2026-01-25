@@ -35,7 +35,7 @@ class AppErrorWidget extends StatelessWidget {
                 width: 80.w,
                 height: 80.w,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.error.withOpacity(0.1),
+                  color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(40.r),
                 ),
                 child: Icon(
@@ -149,7 +149,7 @@ class ErrorDialog extends StatelessWidget {
               width: 60.w,
               height: 60.w,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.error.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(30.r),
               ),
               child: Icon(
@@ -294,7 +294,7 @@ class EmptyStateWidget extends StatelessWidget {
               width: 80.w,
               height: 80.w,
               decoration: BoxDecoration(
-                color: Colors.grey.withOpacity(0.1),
+                color: Colors.grey.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(40.r),
               ),
               child: Icon(

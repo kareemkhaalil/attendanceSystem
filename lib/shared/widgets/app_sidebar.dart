@@ -63,7 +63,7 @@ class _AppSidebarState extends State<AppSidebar> {
               ? []
               : [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withValues(alpha: 0.1),
                     spreadRadius: 1,
                     blurRadius: 3,
                     offset: const Offset(0, 1),
@@ -118,7 +118,7 @@ class _AppSidebarState extends State<AppSidebar> {
                           top: BorderSide(
                               color: Theme.of(context)
                                   .dividerColor
-                                  .withOpacity(0.3)),
+                                  .withValues(alpha: 0.3)),
                         ),
                       ),
                       child: Row(
@@ -214,7 +214,7 @@ class _AppSidebarState extends State<AppSidebar> {
               ),
               decoration: BoxDecoration(
                 color: isActive
-                    ? Colors.white.withOpacity(0.15) // خلفية فاتحة عند التحديد
+                    ? Colors.white.withValues(alpha: 0.15) // خلفية فاتحة عند التحديد
                     : null,
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -285,7 +285,7 @@ class _AppSidebarState extends State<AppSidebar> {
             bottom: 2,
           ),
           decoration: BoxDecoration(
-            color: isActive ? Colors.white.withOpacity(0.15) : null,
+            color: isActive ? Colors.white.withValues(alpha: 0.15) : null,
             borderRadius: BorderRadius.circular(6),
           ),
           child: Row(
