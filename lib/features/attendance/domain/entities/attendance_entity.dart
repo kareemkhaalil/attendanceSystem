@@ -10,10 +10,12 @@ enum AttendanceStatus {
 class AttendanceEntity extends Equatable {
   final String id;
   final String userId;
+  final String userName;
   final DateTime date;
   final DateTime? checkInTime;
   final DateTime? checkOutTime;
   final AttendanceStatus status;
+  final String? method;
   final int? workingHours;
   final int? overtimeHours;
   final String? notes;
@@ -24,10 +26,12 @@ class AttendanceEntity extends Equatable {
   const AttendanceEntity({
     required this.id,
     required this.userId,
+    required this.userName,
     required this.date,
     this.checkInTime,
     this.checkOutTime,
     required this.status,
+    this.method,
     this.workingHours,
     this.overtimeHours,
     this.notes,
@@ -44,6 +48,7 @@ class AttendanceEntity extends Equatable {
         checkInTime,
         checkOutTime,
         status,
+        method,
         workingHours,
         overtimeHours,
         notes,

@@ -1,5 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:manzoma/core/enums/user_role.dart';
+import 'package:manzoma/features/clients/domain/usecases/get_clients_usecase.dart';
 import 'package:manzoma/features/payroll/domain/entities/payroll_rules_entity.dart';
+import 'package:manzoma/features/payroll/domain/usecases/generate_payroll_entries_usecase.dart';
+import 'package:manzoma/features/users/domain/usecases/get_users_usecase.dart';
 import 'payroll_state.dart';
 import '../../domain/entities/payroll_entity.dart';
 import '../../domain/entities/payroll_detail_entity.dart';
@@ -29,6 +33,9 @@ class PayrollCubit extends Cubit<PayrollState> {
   final CreatePayrollRule createPayrollRule;
   final UpdatePayrollRule updatePayrollRule;
   final DeletePayrollRule deletePayrollRule;
+  final GeneratePayrollEntries generatePayrollEntries;
+  final GetClientsUseCase getClientsUseCase;
+  final GetUsersUseCase getUsersUseCase;
 
   PayrollCubit({
     required this.getPayrolls,
@@ -43,6 +50,9 @@ class PayrollCubit extends Cubit<PayrollState> {
     required this.createPayrollRule,
     required this.updatePayrollRule,
     required this.deletePayrollRule,
+    required this.generatePayrollEntries,
+    required this.getClientsUseCase,
+    required this.getUsersUseCase,
   }) : super(const PayrollState());
 
   // ---- Payroll ----
@@ -75,13 +85,15 @@ class PayrollCubit extends Cubit<PayrollState> {
       (failure) => emit(state.copyWith(
           status: PayrollStatus.failure, errorMessage: failure.message)),
       (created) => emit(state.copyWith(
-          status: PayrollStatus.success,
-          payrolls: [...state.payrolls, created])),
+        status: PayrollStatus.success,
+        payrolls: [...state.payrolls, created],
+        message: "تم إضافة الراتب بنجاح", // 👈 هنا الرسالة
+      )),
     );
   }
 
   Future<void> editPayroll(PayrollEntity payroll) async {
-    emit(state.copyWith(status: PayrollStatus.loading));
+    emit(state.copyWith(status: PayrollStatus.loading, message: null));
     final result = await updatePayroll(payroll);
     result.fold(
       (failure) => emit(state.copyWith(
@@ -91,7 +103,10 @@ class PayrollCubit extends Cubit<PayrollState> {
             .map((p) => p.id == updated.id ? updated : p)
             .toList();
         emit(state.copyWith(
-            status: PayrollStatus.success, payrolls: updatedList));
+          status: PayrollStatus.success,
+          payrolls: updatedList,
+          message: "تم تعديل الراتب بنجاح", // 👈 هنا الرسالة
+        ));
       },
     );
   }
@@ -104,7 +119,10 @@ class PayrollCubit extends Cubit<PayrollState> {
           status: PayrollStatus.failure, errorMessage: failure.message)),
       (_) {
         final filtered = state.payrolls.where((p) => p.id != id).toList();
-        emit(state.copyWith(status: PayrollStatus.success, payrolls: filtered));
+        emit(state.copyWith(
+            status: PayrollStatus.success,
+            payrolls: filtered,
+            message: 'تم حذف الراتب بنجاح'));
       },
     );
   }
@@ -128,7 +146,9 @@ class PayrollCubit extends Cubit<PayrollState> {
       (failure) => emit(state.copyWith(
           status: PayrollStatus.failure, errorMessage: failure.message)),
       (created) => emit(state.copyWith(
-          status: PayrollStatus.success, details: [...state.details, created])),
+          status: PayrollStatus.success,
+          details: [...state.details, created],
+          message: 'تم إضافة تفاصيل الراتب بنجاح')),
     );
   }
 
@@ -147,29 +167,34 @@ class PayrollCubit extends Cubit<PayrollState> {
 
   // ---- Payroll Rules ----
   Future<void> fetchRules(String tenantId) async {
-    emit(state.copyWith(status: PayrollStatus.loading));
+    emit(state.copyWith(status: PayrollStatus.loading, message: null));
     final result = await getPayrollRules(tenantId);
     result.fold(
       (failure) => emit(state.copyWith(
           status: PayrollStatus.failure, errorMessage: failure.message)),
-      (rules) =>
-          emit(state.copyWith(status: PayrollStatus.success, rules: rules)),
+      (rules) => emit(state.copyWith(
+          status: PayrollStatus.success,
+          rules: rules,
+          message: "تم تحميل القواعد بنجاح")),
     );
   }
 
   Future<void> addRule(PayrollRuleEntity rule) async {
-    emit(state.copyWith(status: PayrollStatus.loading));
+    emit(state.copyWith(status: PayrollStatus.loading, message: null));
     final result = await createPayrollRule(rule);
     result.fold(
       (failure) => emit(state.copyWith(
           status: PayrollStatus.failure, errorMessage: failure.message)),
       (created) => emit(state.copyWith(
-          status: PayrollStatus.success, rules: [...state.rules, created])),
+        status: PayrollStatus.success,
+        rules: [...state.rules, created],
+        message: "تم إضافة القاعدة بنجاح",
+      )),
     );
   }
 
   Future<void> editRule(PayrollRuleEntity rule) async {
-    emit(state.copyWith(status: PayrollStatus.loading));
+    emit(state.copyWith(status: PayrollStatus.loading, message: null));
     final result = await updatePayrollRule(rule);
     result.fold(
       (failure) => emit(state.copyWith(
@@ -177,21 +202,66 @@ class PayrollCubit extends Cubit<PayrollState> {
       (updated) {
         final updatedList =
             state.rules.map((r) => r.id == updated.id ? updated : r).toList();
-        emit(state.copyWith(status: PayrollStatus.success, rules: updatedList));
+        emit(state.copyWith(
+          status: PayrollStatus.success,
+          rules: updatedList,
+          message: "تم تعديل القاعدة بنجاح",
+        ));
       },
     );
   }
 
   Future<void> removeRule(String ruleId) async {
-    emit(state.copyWith(status: PayrollStatus.loading));
+    emit(state.copyWith(status: PayrollStatus.loading, message: null));
     final result = await deletePayrollRule(ruleId);
     result.fold(
       (failure) => emit(state.copyWith(
           status: PayrollStatus.failure, errorMessage: failure.message)),
       (_) {
         final filtered = state.rules.where((r) => r.id != ruleId).toList();
-        emit(state.copyWith(status: PayrollStatus.success, rules: filtered));
+        emit(state.copyWith(
+          status: PayrollStatus.success,
+          rules: filtered,
+          message: "تم حذف القاعدة بنجاح",
+        ));
       },
+    );
+  }
+
+  Future<void> generateEntries(String payrollId, String tenantId) async {
+    emit(state.copyWith(status: PayrollStatus.loading));
+    final result = await generatePayrollEntries(payrollId, tenantId);
+    result.fold(
+      (failure) => emit(state.copyWith(
+          status: PayrollStatus.failure, errorMessage: failure.message)),
+      (entries) =>
+          emit(state.copyWith(status: PayrollStatus.success, details: entries)),
+    );
+  }
+
+  Future<void> fetchClients() async {
+    emit(state.copyWith(status: PayrollStatus.loading));
+    final result = await getClientsUseCase(
+      const GetClientsParams(),
+    );
+    result.fold(
+      (failure) => emit(state.copyWith(
+          status: PayrollStatus.failure, errorMessage: failure.message)),
+      (clients) =>
+          emit(state.copyWith(status: PayrollStatus.success, clients: clients)),
+    );
+  }
+
+  Future<void> fetchEmployees(String tenantId) async {
+    emit(state.copyWith(status: PayrollStatus.loading));
+    final result = await getUsersUseCase(
+      GetUsersParams(tenantId: tenantId, role: UserRole.employee),
+    );
+    result.fold(
+      (failure) => emit(state.copyWith(
+          status: PayrollStatus.failure, errorMessage: failure.message)),
+      (employees) => emit(
+          state.copyWith(status: PayrollStatus.success, employees: employees)),
     );
   }
 }

@@ -1,4 +1,21 @@
 import 'package:get_it/get_it.dart';
+import 'package:manzoma/core/localization/cubit/locale_cubit.dart';
+import 'package:manzoma/core/theme/cubit/theme_cubit.dart';
+import 'package:manzoma/features/attendance/data/datasources/attendance_rules_remote_datasource.dart';
+import 'package:manzoma/features/attendance/data/repositories/attendance_rules_repository_impl.dart';
+import 'package:manzoma/features/attendance/domain/repositories/attendance_rules_repository.dart';
+import 'package:manzoma/features/attendance/domain/usecases/assign_rule_to_user_usecase.dart';
+import 'package:manzoma/features/attendance/domain/usecases/check_in_with_qr_usecase.dart';
+import 'package:manzoma/features/attendance/domain/usecases/get_attendance_history_tennent_usecase.dart';
+import 'package:manzoma/features/attendance/domain/usecases/get_metrics_usecase.dart';
+import 'package:manzoma/features/attendance/presentation/cubit/attendance_cubit.dart';
+import 'package:manzoma/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:manzoma/features/auth/presentation/cubit/login_cubit.dart';
+import 'package:manzoma/features/clients/presentation/cubit/client_cubit.dart';
+import 'package:manzoma/features/payroll/domain/usecases/generate_payroll_entries_usecase.dart';
+import 'package:manzoma/features/payroll/presentation/cubit/payroll_cubit.dart';
+import 'package:manzoma/features/users/presentation/cubit/user_cubit.dart';
+import 'package:manzoma/features/branches/presentation/cubit/branch_cubit.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 // Core
@@ -39,7 +56,16 @@ import '../../features/users/domain/repositories/user_repository.dart';
 import '../../features/users/domain/usecases/get_users_usecase.dart';
 import '../../features/users/domain/usecases/create_user_usecase.dart';
 import '../../features/users/domain/usecases/update_users_usecase.dart';
-import '../../features/users/domain/usecases/delete_user_usecase.dart';
+
+// Clients
+import '../../features/clients/data/datasources/client_remote_datasource.dart';
+import '../../features/clients/data/repositories/client_repository_impl.dart';
+import '../../features/clients/domain/repositories/client_repository.dart';
+import '../../features/clients/domain/usecases/create_client_usecase.dart';
+import '../../features/clients/domain/usecases/delete_client_usecase.dart';
+import '../../features/clients/domain/usecases/get_client_by_id_usecase.dart';
+import '../../features/clients/domain/usecases/get_clients_usecase.dart';
+import '../../features/clients/domain/usecases/update_client_usecase.dart';
 
 // Branches
 import '../../features/branches/presentation/cubit/branch_cubit.dart';
@@ -69,45 +95,29 @@ import '../../features/payroll/data/repositories/payroll_rule_repository_impl.da
 import '../../features/payroll/domain/repositories/payroll_repository.dart';
 import '../../features/payroll/domain/repositories/payroll_details_repository.dart';
 import '../../features/payroll/domain/repositories/payroll_rules_repo.dart';
-import '../../features/payroll/domain/usecases/create_payroll.dart';
-import '../../features/payroll/domain/usecases/get_payrolls.dart';
-import '../../features/payroll/domain/usecases/get_payroll_by_id.dart';
-import '../../features/payroll/domain/usecases/update_payroll.dart';
-import '../../features/payroll/domain/usecases/delete_payroll.dart';
-import '../../features/payroll/domain/usecases/get_payroll_details.dart';
 import '../../features/payroll/domain/usecases/add_payroll_detail.dart';
-import '../../features/payroll/domain/usecases/delete_payroll_detail.dart';
-import '../../features/payroll/domain/usecases/get_payroll_rules.dart';
+import '../../features/payroll/domain/usecases/create_payroll.dart';
 import '../../features/payroll/domain/usecases/create_payroll_rule.dart';
-import '../../features/payroll/domain/usecases/update_payroll_rule.dart';
+import '../../features/payroll/domain/usecases/delete_payroll.dart';
+import '../../features/payroll/domain/usecases/delete_payroll_detail.dart';
 import '../../features/payroll/domain/usecases/delete_payroll_rule.dart';
+import '../../features/payroll/domain/usecases/get_payroll_by_id.dart';
+import '../../features/payroll/domain/usecases/get_payroll_details.dart';
+import '../../features/payroll/domain/usecases/get_payroll_rules.dart';
+import '../../features/payroll/domain/usecases/get_payrolls.dart';
+import '../../features/payroll/domain/usecases/update_payroll.dart';
+import '../../features/payroll/domain/usecases/update_payroll_rule.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
-  //! ================= CORE =================
+  //! -------------------- Cubits --------------------
   sl.registerLazySingleton<ThemeCubit>(() => ThemeCubit());
   sl.registerLazySingleton<LocaleCubit>(() => LocaleCubit());
-  sl.registerLazySingleton<NetworkInfo>(() => AlwaysConnectedNetworkInfo());
-  sl.registerLazySingleton<SupabaseClient>(() => SupabaseConfig.client);
 
-  //! ================= AUTH =================
   sl.registerFactory<LoginCubit>(() => LoginCubit());
   sl.registerFactory<AuthCubit>(() => AuthCubit());
 
-  sl.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(supabaseClient: sl()),
-  );
-  sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
-  );
-
-  sl.registerLazySingleton(() => SignInUseCase(sl()));
-  sl.registerLazySingleton(() => SignUpUseCase(sl()));
-  sl.registerLazySingleton(() => SignOutUseCase(sl()));
-  sl.registerLazySingleton(() => GetCurrentUserUseCase(sl()));
-
-  //! ================= CLIENTS =================
   sl.registerFactory<ClientCubit>(() => ClientCubit(
         getClientsUseCase: sl(),
         getClientByIdUseCase: sl(),
@@ -116,70 +126,19 @@ Future<void> init() async {
         deleteClientUseCase: sl(),
       ));
 
-  sl.registerLazySingleton<ClientRemoteDataSource>(
-    () => ClientRemoteDataSourceImpl(supabaseClient: sl()),
-  );
-  sl.registerLazySingleton<ClientRepository>(
-    () => ClientRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
-  );
-
-  sl.registerLazySingleton(() => GetClientsUseCase(sl()));
-  sl.registerLazySingleton(() => GetClientByIdUseCase(sl()));
-  sl.registerLazySingleton(() => CreateClientUseCase(sl()));
-  sl.registerLazySingleton(() => UpdateClientUseCase(sl()));
-  sl.registerLazySingleton(() => DeleteClientUseCase(sl()));
-
-  //! ================= USERS =================
   sl.registerFactory<UserCubit>(() => UserCubit(
         getUsersUseCase: sl(),
         createUserUseCase: sl(),
         updateUsersUsecase: sl(),
-        deleteUserUseCase: sl(),
       ));
 
-  sl.registerLazySingleton<UserRemoteDataSource>(
-    () => UserRemoteDataSourceImpl(supabaseClient: sl()),
-  );
-  sl.registerLazySingleton<UserRepository>(
-    () => UserRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
-  );
-
-  sl.registerLazySingleton(() => GetUsersUseCase(sl()));
-  sl.registerLazySingleton(() => CreateUserUseCase(sl()));
-  sl.registerLazySingleton(() => UpdateUsersUsecase(sl()));
-  sl.registerLazySingleton(() => DeleteUserUseCase(sl()));
-
-  //! ================= BRANCHES =================
   sl.registerFactory<BranchCubit>(() => BranchCubit(
         getBranchesUseCase: sl(),
         createBranchUseCase: sl(),
       ));
 
-  sl.registerLazySingleton<BranchRemoteDataSource>(
-    () => BranchRemoteDataSourceImpl(supabaseClient: sl()),
-  );
-  sl.registerLazySingleton<BranchRepository>(
-    () => BranchRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
-  );
-
-  sl.registerLazySingleton(() => GetBranchesUseCase(sl()));
-  sl.registerLazySingleton(() => CreateBranchUseCase(sl()));
-
-  //! ================= ATTENDANCE =================
   sl.registerFactory<AttendanceCubit>(() => AttendanceCubit());
 
-  sl.registerLazySingleton<AttendanceRemoteDataSource>(
-    () => AttendanceRemoteDataSourceImpl(supabaseClient: sl()),
-  );
-  sl.registerLazySingleton<AttendanceRepository>(
-    () => AttendanceRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
-  );
-
-  sl.registerLazySingleton(() => CheckInUseCase(sl()));
-  sl.registerLazySingleton(() => CheckOutUseCase(sl()));
-  sl.registerLazySingleton(() => GetAttendanceHistoryUseCase(sl()));
-
-  //! ================= PAYROLL =================
   sl.registerFactory<PayrollCubit>(() => PayrollCubit(
         createPayroll: sl(),
         getPayrolls: sl(),
@@ -193,48 +152,163 @@ Future<void> init() async {
         createPayrollRule: sl(),
         updatePayrollRule: sl(),
         deletePayrollRule: sl(),
+        generatePayrollEntries: sl(),
+        getClientsUseCase: sl(),
+        getUsersUseCase: sl(),
       ));
 
-  // Payroll Repositories
-  sl.registerLazySingleton<PayrollRepository>(
-    () => PayrollRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
-  );
+  //! -------------------- UseCases --------------------
+  // Auth
+  sl.registerLazySingleton<SignInUseCase>(() => SignInUseCase(sl()));
+  sl.registerLazySingleton<SignUpUseCase>(() => SignUpUseCase(sl()));
+  sl.registerLazySingleton<SignOutUseCase>(() => SignOutUseCase(sl()));
+  sl.registerLazySingleton<GetCurrentUserUseCase>(
+      () => GetCurrentUserUseCase(sl()));
+
+  // Users
+  sl.registerLazySingleton<GetUsersUseCase>(() => GetUsersUseCase(sl()));
+  sl.registerLazySingleton<CreateUserUseCase>(() => CreateUserUseCase(sl()));
+  sl.registerLazySingleton<UpdateUsersUsecase>(() => UpdateUsersUsecase(sl()));
+
+  // Clients
+  sl.registerLazySingleton<CreateClientUseCase>(
+      () => CreateClientUseCase(sl()));
+  sl.registerLazySingleton<GetClientsUseCase>(() => GetClientsUseCase(sl()));
+  sl.registerLazySingleton<UpdateClientUseCase>(
+      () => UpdateClientUseCase(sl()));
+  sl.registerLazySingleton<DeleteClientUseCase>(
+      () => DeleteClientUseCase(sl()));
+  sl.registerLazySingleton<GetClientByIdUseCase>(
+      () => GetClientByIdUseCase(sl()));
+
+  // Branches
+  sl.registerLazySingleton<GetBranchesUseCase>(() => GetBranchesUseCase(sl()));
+  sl.registerLazySingleton<CreateBranchUseCase>(
+      () => CreateBranchUseCase(sl()));
+
+  // Attendance
+  sl.registerLazySingleton<CheckInUseCase>(() => CheckInUseCase(sl()));
+  sl.registerLazySingleton<CheckInWithQrUseCase>(
+      () => CheckInWithQrUseCase(sl()));
+  sl.registerLazySingleton<CheckOutUseCase>(() => CheckOutUseCase(sl()));
+  sl.registerLazySingleton<GetAttendanceHistoryUseCase>(
+      () => GetAttendanceHistoryUseCase(sl()));
+  sl.registerLazySingleton<GetAttendanceHistoryByTennentidUseCase>(
+      () => GetAttendanceHistoryByTennentidUseCase(sl()));
+  sl.registerLazySingleton<AssignRuleToUserUsecase>(
+      () => AssignRuleToUserUsecase(sl()));
+  sl.registerLazySingleton<GetMetricsUseCase>(() => GetMetricsUseCase(sl()));
+
+  // Payroll
+  sl.registerLazySingleton<CreatePayroll>(() => CreatePayroll(sl()));
+  sl.registerLazySingleton<GetPayrolls>(() => GetPayrolls(sl()));
+  sl.registerLazySingleton<GetPayrollById>(() => GetPayrollById(sl()));
+  sl.registerLazySingleton<UpdatePayroll>(() => UpdatePayroll(sl()));
+  sl.registerLazySingleton<DeletePayroll>(() => DeletePayroll(sl()));
+
+  sl.registerLazySingleton<GetPayrollDetails>(() => GetPayrollDetails(sl()));
+  sl.registerLazySingleton<AddPayrollDetail>(() => AddPayrollDetail(sl()));
+  sl.registerLazySingleton<DeletePayrollDetail>(
+      () => DeletePayrollDetail(sl()));
+
+  sl.registerLazySingleton<GetPayrollRules>(() => GetPayrollRules(sl()));
+  sl.registerLazySingleton<CreatePayrollRule>(() => CreatePayrollRule(sl()));
+  sl.registerLazySingleton<UpdatePayrollRule>(() => UpdatePayrollRule(sl()));
+  sl.registerLazySingleton<DeletePayrollRule>(() => DeletePayrollRule(sl()));
+  sl.registerLazySingleton<GeneratePayrollEntries>(
+      () => GeneratePayrollEntries(sl()));
+
+  //! -------------------- Repositories --------------------
+  // Auth
+  sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(
+        remoteDataSource: sl(),
+        networkInfo: sl(),
+      ));
+
+  // Users
+  sl.registerLazySingleton<UserRepository>(() => UserRepositoryImpl(
+        remoteDataSource: sl(),
+        networkInfo: sl(),
+      ));
+
+  // Clients
+  sl.registerLazySingleton<ClientRepository>(() => ClientRepositoryImpl(
+        remoteDataSource: sl(),
+        networkInfo: sl(),
+      ));
+
+  // Branches
+  sl.registerLazySingleton<BranchRepository>(() => BranchRepositoryImpl(
+        remoteDataSource: sl(),
+        networkInfo: sl(),
+      ));
+
+  // Attendance
+  sl.registerLazySingleton<AttendanceRepository>(() => AttendanceRepositoryImpl(
+        remoteDataSource: sl(),
+        networkInfo: sl(),
+      ));
+  sl.registerLazySingleton<AttendanceRulesRepository>(
+      () => AttendanceRulesRepositoryImpl(remote: sl()));
+
+  // Payroll
+  sl.registerLazySingleton<PayrollRepository>(() => PayrollRepositoryImpl(
+        remoteDataSource: sl(),
+        networkInfo: sl(),
+      ));
+
   sl.registerLazySingleton<PayrollDetailRepository>(
-    () => PayrollDetailRepositoryImpl(remoteDataSource: sl()),
-  );
-  sl.registerLazySingleton<PayrollRulesRepository>(
-    () => PayrollRulesRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()),
+      () => PayrollDetailRepositoryImpl(remoteDataSource: sl()));
+
+  sl.registerLazySingleton<PayrollRulesRepository>(() =>
+      PayrollRulesRepositoryImpl(remoteDataSource: sl(), networkInfo: sl()));
+
+  //! -------------------- DataSources --------------------
+  // Auth
+  sl.registerLazySingleton<AuthRemoteDataSource>(
+      () => AuthRemoteDataSourceImpl(supabaseClient: sl()));
+
+  // Users
+  sl.registerLazySingleton<UserRemoteDataSource>(
+      () => UserRemoteDataSourceImpl(supabaseClient: sl()));
+
+  // Clients
+  sl.registerLazySingleton<ClientRemoteDataSource>(
+      () => ClientRemoteDataSourceImpl(supabaseClient: sl()));
+
+  // Branches
+  sl.registerLazySingleton<BranchRemoteDataSource>(
+      () => BranchRemoteDataSourceImpl(supabaseClient: sl()));
+
+  // Attendance
+  sl.registerLazySingleton<AttendanceRemoteDataSource>(
+      () => AttendanceRemoteDataSourceImpl(supabaseClient: sl()));
+  sl.registerLazySingleton<AttendanceRulesRemoteDataSource>(
+    () => AttendanceRulesRemoteDataSourceImpl(
+      supabase: sl(),
+    ),
   );
 
-  // Payroll DataSources
+  // Payroll
   sl.registerLazySingleton<PayrollRemoteDataSource>(
-    () => PayrollRemoteDataSourceImpl(client: sl()),
-  );
-  sl.registerLazySingleton<PayrollDetailRemoteDataSource>(
-    () => PayrollDetailRemoteDataSourceImpl(client: sl()),
-  );
-  sl.registerLazySingleton<PayrollRulesRemoteDataSource>(
-    () => PayrollRulesRemoteDataSourceImpl(client: sl()),
-  );
+      () => PayrollRemoteDataSourceImpl(client: sl()));
 
-  // Payroll UseCases
-  sl.registerLazySingleton(() => CreatePayroll(sl()));
-  sl.registerLazySingleton(() => GetPayrolls(sl()));
-  sl.registerLazySingleton(() => GetPayrollById(sl()));
-  sl.registerLazySingleton(() => UpdatePayroll(sl()));
-  sl.registerLazySingleton(() => DeletePayroll(sl()));
-  sl.registerLazySingleton(() => GetPayrollDetails(sl()));
-  sl.registerLazySingleton(() => AddPayrollDetail(sl()));
-  sl.registerLazySingleton(() => DeletePayrollDetail(sl()));
-  sl.registerLazySingleton(() => GetPayrollRules(sl()));
-  sl.registerLazySingleton(() => CreatePayrollRule(sl()));
-  sl.registerLazySingleton(() => UpdatePayrollRule(sl()));
-  sl.registerLazySingleton(() => DeletePayrollRule(sl()));
+  sl.registerLazySingleton<PayrollDetailRemoteDataSource>(
+      () => PayrollDetailRemoteDataSourceImpl(client: sl()));
+
+  sl.registerLazySingleton<PayrollRulesDataSource>(
+      () => PayrollRulesDataSource(supabase: sl()));
+
+  //! -------------------- Core --------------------
+  sl.registerLazySingleton<NetworkInfo>(() => AlwaysConnectedNetworkInfo());
+
+  //! -------------------- External --------------------
+  sl.registerLazySingleton<SupabaseClient>(() => SupabaseConfig.client);
 }
 
 Future<void> initializeSupabase() async {
   await SupabaseConfig.initialize();
 }
 
-// Alias for backward compatibility
+// Alias
 final getIt = sl;

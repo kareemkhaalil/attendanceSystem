@@ -5,10 +5,13 @@ import 'package:manzoma/core/enums/user_role.dart';
 import 'package:manzoma/core/localization/app_localizations.dart';
 import 'package:manzoma/core/localization/cubit/locale_cubit.dart';
 import 'package:manzoma/core/storage/shared_pref_helper.dart';
+import 'package:manzoma/features/attendance/presentation/screens/attendance_dashboard_screen.dart';
+import 'package:manzoma/features/attendance/presentation/screens/attendance_rule_screen.dart';
 import 'package:manzoma/features/branches/domain/entities/branch_entity.dart';
 import 'package:manzoma/features/branches/presentation/screens/branches_edit_screen.dart';
 import 'package:manzoma/features/employee/presentation/screens/attendance_screen.dart';
 import 'package:manzoma/features/employee/presentation/screens/employee_home_screen.dart';
+import 'package:manzoma/features/payroll/presentation/screens/employee_salary.dart';
 import 'package:manzoma/features/payroll/presentation/screens/employee_salary_screen.dart';
 import 'package:manzoma/features/payroll/presentation/screens/payroll_rules_screen.dart';
 import 'package:manzoma/features/users/presentation/screens/users_edit_screen.dart';
@@ -39,16 +42,16 @@ class AppRouter {
       final goingToLogin = state.matchedLocation == RouteNames.login;
       final goingToSplash = state.matchedLocation == RouteNames.splash;
 
-      // نخلي السبلاش دايماً يشتغل
+      // Splash يشتغل دايمًا
       if (goingToSplash) return null;
       if (!loggedIn && !goingToLogin) return RouteNames.login;
       if (loggedIn && goingToLogin) return RouteNames.dashboard;
 
-      // حماية على بعض الروتس
+      // حماية حسب الدور
       final role = user?.role ?? UserRole.employee;
       final loc = state.matchedLocation;
 
-      // حماية كل مسارات العملاء (Super Admin فقط)
+      // SuperAdmin فقط يشوف العملاء
       if (role != UserRole.superAdmin) {
         if (loc == RouteNames.clients ||
             loc == RouteNames.createClient ||
@@ -57,7 +60,7 @@ class AppRouter {
         }
       }
 
-      // حماية للموظف: يمنع الدخول للفروع/المستخدمين/التقارير (بما فيها الإنشاء/التعديل)
+      // الموظف يمنع من بعض الصفحات
       if (role == UserRole.employee) {
         final restrictedForEmployee = <String>{
           RouteNames.branches,
@@ -76,6 +79,7 @@ class AppRouter {
       return null;
     },
     routes: [
+      // Splash/Login
       GoRoute(
         path: RouteNames.splash,
         name: 'splash',
@@ -87,43 +91,72 @@ class AppRouter {
         builder: (context, state) => const LoginScreen(),
       ),
 
-      // Dashboard Routes
+      // Dashboard
       GoRoute(
         path: RouteNames.dashboard,
         name: 'dashboard',
-        builder: (context, state) => const MainAppShell(
-          child: DashboardScreen(),
-        ),
+        builder: (context, state) =>
+            const MainAppShell(child: DashboardScreen()),
       ),
 
-      // Attendance Routes
+      // Attendance
       GoRoute(
         path: RouteNames.attendance,
         name: 'attendance',
+        builder: (context, state) => MainAppShell(child: AttendanceScreen()),
+      ),
+      GoRoute(
+        path: RouteNames.attendanceDashboard,
+        name: 'attendanceDashboard',
         builder: (context, state) =>
-            const MainAppShell(child: AttendanceScreen()),
+            const MainAppShell(child: AttendanceDashboardPage()),
+      ),
+      GoRoute(
+        path: RouteNames.attendanceRule,
+        name: 'attendanceRule',
+        builder: (context, state) =>
+            const MainAppShell(child: AttendanceRulesPage()),
       ),
 
-      // Payroll Routes
+      // Payroll
       GoRoute(
         path: RouteNames.payroll,
         name: 'payroll',
         builder: (context, state) => const MainAppShell(child: PayrollScreen()),
       ),
       GoRoute(
-        path: RouteNames.payrollSettings,
-        name: 'payrollRules',
+        path: RouteNames.payrollRules,
         builder: (context, state) =>
             const MainAppShell(child: PayrollRulesScreen()),
       ),
       GoRoute(
+        path: RouteNames.employeePayroll,
+        name: 'employeePayroll',
+        builder: (context, state) =>
+            const MainAppShell(child: EmployeePayrollPage()),
+      ),
+      GoRoute(
         path: RouteNames.employeeSalary,
         name: 'employeeSalary',
-        builder: (context, state) =>
-            const MainAppShell(child: EmployeeSalaryScreen()),
+        builder: (context, state) {
+          final extra = state.extra as Map?;
+          if (extra == null ||
+              extra['tenantId'] == null ||
+              extra['employees'] == null) {
+            return const Scaffold(
+              body: Center(child: Text("❌ بيانات ناقصة لعرض المرتبات")),
+            );
+          }
+          return MainAppShell(
+            child: EmployeeSalaryScreen(
+              tenantId: extra['tenantId'],
+              employees: List.from(extra['employees']),
+            ),
+          );
+        },
       ),
 
-      // Clients Routes (Super Admin only)
+      // Clients (SuperAdmin only)
       GoRoute(
         path: RouteNames.clients,
         name: 'clients',
@@ -139,12 +172,12 @@ class AppRouter {
         path: '/clients/:id/edit',
         name: 'editClient',
         builder: (context, state) {
-          final client = state.extra; // مرر الـ client كـ extra
+          final client = state.extra;
           return MainAppShell(child: ClientsCreateScreen(client: client));
         },
       ),
 
-      // Users Routes (Super Admin & CAD only)
+      // Users
       GoRoute(
         path: RouteNames.users,
         name: 'users',
@@ -153,9 +186,8 @@ class AppRouter {
       GoRoute(
         path: RouteNames.createUser,
         name: 'createUser',
-        builder: (context, state) => const MainAppShell(
-          child: UsersCreateScreen(),
-        ),
+        builder: (context, state) =>
+            const MainAppShell(child: UsersCreateScreen()),
       ),
       GoRoute(
         path: '/users/edit',
@@ -165,7 +197,7 @@ class AppRouter {
         },
       ),
 
-      // Branches Routes (Super Admin & CAD only)
+      // Branches
       GoRoute(
         path: RouteNames.branches,
         name: 'branches',
@@ -181,13 +213,12 @@ class AppRouter {
       GoRoute(
         path: '/branches/edit',
         builder: (context, state) {
-          // استلام بيانات الفرع
           final branch = state.extra as BranchEntity;
           return BranchesEditScreen(editingBranch: branch);
         },
       ),
 
-      // Reports Routes
+      // Reports
       GoRoute(
         path: RouteNames.reports,
         name: 'reports',
@@ -244,10 +275,10 @@ class _MainAppShellState extends State<MainAppShell> {
       final isMobile = constraints.maxWidth < 768;
       final isLtr = Directionality.of(context) == TextDirection.ltr;
       final localeCubit = context.watch<LocaleCubit>();
-      final isEnglish = localeCubit.state.locale.languageCode;
+      final isEnglish = localeCubit.state.locale.languageCode == "en";
 
       if (isMobile) {
-        // 📱 Mobile Layout with Drawer
+        // 📱 Mobile Layout
         return Scaffold(
           key: _scaffoldKey,
           appBar: AppTopBar(
@@ -262,11 +293,11 @@ class _MainAppShellState extends State<MainAppShell> {
           body: widget.child,
         );
       } else {
-        // 💻 Desktop Layout with Sidebar (dynamic RTL/LTR)
+        // 💻 Desktop Layout
         return Scaffold(
           body: Row(
             children: [
-              if (isEnglish.isNotEmpty) const AppSidebar(isMobile: false),
+              if (isEnglish || !isEnglish) const AppSidebar(isMobile: false),
               Expanded(
                 child: Column(
                   children: [

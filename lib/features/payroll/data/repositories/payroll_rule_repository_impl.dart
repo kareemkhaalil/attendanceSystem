@@ -8,7 +8,7 @@ import '../../../../core/error/failures.dart';
 import '../../../../core/network/network_info.dart';
 
 class PayrollRulesRepositoryImpl implements PayrollRulesRepository {
-  final PayrollRulesRemoteDataSource remoteDataSource;
+  final PayrollRulesDataSource remoteDataSource;
   final NetworkInfo networkInfo;
 
   PayrollRulesRepositoryImpl({
@@ -21,7 +21,7 @@ class PayrollRulesRepositoryImpl implements PayrollRulesRepository {
       String tenantId) async {
     if (!await networkInfo.isConnected) return const Left(NetworkFailure(''));
     try {
-      final models = await remoteDataSource.getAllRules(tenantId);
+      final models = await remoteDataSource.getPayrollRules(tenantId);
       return Right(models);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
@@ -45,7 +45,7 @@ class PayrollRulesRepositoryImpl implements PayrollRulesRepository {
         createdAt: rule.createdAt,
         updatedAt: rule.updatedAt,
       );
-      final result = await remoteDataSource.createRule(model);
+      final result = await remoteDataSource.createPayrollRule(model);
       return Right(result);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
@@ -69,7 +69,7 @@ class PayrollRulesRepositoryImpl implements PayrollRulesRepository {
         createdAt: rule.createdAt,
         updatedAt: rule.updatedAt,
       );
-      final result = await remoteDataSource.updateRule(model);
+      final result = await remoteDataSource.updatePayrollRule(model);
       return Right(result);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));
@@ -80,7 +80,7 @@ class PayrollRulesRepositoryImpl implements PayrollRulesRepository {
   Future<Either<Failure, void>> deleteRule(String ruleId) async {
     if (!await networkInfo.isConnected) return const Left(NetworkFailure(''));
     try {
-      await remoteDataSource.deleteRule(ruleId);
+      await remoteDataSource.deletePayrollRule(ruleId);
       return const Right(null);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message));

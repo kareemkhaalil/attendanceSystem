@@ -1,6 +1,7 @@
 class RouteNames {
   // Splash Route
   static const String splash = '/';
+
   // Auth Routes
   static const String login = '/login';
   static const String register = '/register';
@@ -12,12 +13,15 @@ class RouteNames {
   static const String attendance = '/attendance';
   static const String attendanceHistory = '/attendance/history';
   static const String attendanceReport = '/attendance/report';
+  static const String attendanceDashboard = '/attendance/dashboard';
+  static const String attendanceRule = '/attendance/rules';
 
   // Payroll Routes
-  static const String payroll = '/payroll';
+  static const String payroll = '/payroll'; // Dashboard
   static const String payrollHistory = '/payroll/history';
-  static const String payrollSettings = '/payroll/rules/settings';
-  static const String employeeSalary = '/payroll/employee/salary';
+  static const String payrollRules = '/payroll/rules'; // بدل settings
+  static const String employeePayroll = '/payroll/employees'; // Multi-select
+  static const String employeeSalary = '/payroll/employees/salary'; // Details
 
   // Branches Routes (Super Admin & CAD only)
   static const String branches = '/branches';

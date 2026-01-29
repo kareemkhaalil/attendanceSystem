@@ -4,10 +4,12 @@ class AttendanceModel extends AttendanceEntity {
   const AttendanceModel({
     required super.id,
     required super.userId,
+    required super.userName,
     required super.date,
     super.checkInTime,
     super.checkOutTime,
     required super.status,
+    super.method,
     super.workingHours,
     super.overtimeHours,
     super.notes,
@@ -20,6 +22,7 @@ class AttendanceModel extends AttendanceEntity {
     return AttendanceModel(
       id: json['id'] as String,
       userId: json['user_id'] as String,
+      userName: json['user_name'] as String,
       date: DateTime.parse(json['date'] as String),
       checkInTime: json['check_in_time'] != null
           ? DateTime.parse(json['check_in_time'] as String)
@@ -31,6 +34,7 @@ class AttendanceModel extends AttendanceEntity {
         (status) => status.name == json['status'],
         orElse: () => AttendanceStatus.absent,
       ),
+      method: json['method'] as String,
       workingHours: json['working_hours'] as int?,
       overtimeHours: json['overtime_hours'] as int?,
       notes: json['notes'] as String?,
@@ -48,6 +52,9 @@ class AttendanceModel extends AttendanceEntity {
       'check_in_time': checkInTime?.toIso8601String(),
       'check_out_time': checkOutTime?.toIso8601String(),
       'status': status.name,
+
+      'method': method,
+      'working_hours': status.name,
       'working_hours': workingHours,
       'overtime_hours': overtimeHours,
       'notes': notes,
@@ -60,6 +67,7 @@ class AttendanceModel extends AttendanceEntity {
   AttendanceModel copyWith({
     String? id,
     String? userId,
+    String? userName,
     DateTime? date,
     DateTime? checkInTime,
     DateTime? checkOutTime,
@@ -74,6 +82,7 @@ class AttendanceModel extends AttendanceEntity {
     return AttendanceModel(
       id: id ?? this.id,
       userId: userId ?? this.userId,
+      userName: userName ?? this.userName,
       date: date ?? this.date,
       checkInTime: checkInTime ?? this.checkInTime,
       checkOutTime: checkOutTime ?? this.checkOutTime,

@@ -1,18 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
+import 'package:manzoma/core/storage/shared_pref_helper.dart';
 import '../cubit/attendance_cubit.dart';
 import '../cubit/attendance_state.dart';
 import '../../../../shared/widgets/custom_button.dart';
 
 class AttendanceScreen extends StatelessWidget {
-  const AttendanceScreen({super.key});
+  AttendanceScreen({super.key});
+  final user = SharedPrefHelper.getUser();
 
   @override
   Widget build(BuildContext context) {
+    print(' screen tenant id : ${user!.tenantId}');
+
     return BlocProvider(
       create: (context) => AttendanceCubit()
-        ..getAttendanceHistory(userId: 'current-user-id', refresh: true),
+        ..getAttendanceHistoryByTenant(
+            tenantId: user!.tenantId.toString(), refresh: true),
       child: const AttendanceView(),
     );
   }
@@ -27,6 +32,7 @@ class AttendanceView extends StatefulWidget {
 
 class _AttendanceViewState extends State<AttendanceView> {
   final ScrollController _scrollController = ScrollController();
+  final user = SharedPrefHelper.getUser();
 
   @override
   void initState() {
@@ -42,8 +48,9 @@ class _AttendanceViewState extends State<AttendanceView> {
 
   void _onScroll() {
     if (_isBottom) {
-      context.read<AttendanceCubit>().getAttendanceHistory(
-            userId: 'current-user-id',
+      print(' screen tenant id : ${user!.tenantId}');
+      context.read<AttendanceCubit>().getAttendanceHistoryByTenant(
+            tenantId: user!.tenantId.toString(),
             refresh: false,
           );
     }
@@ -206,6 +213,7 @@ class _AttendanceViewState extends State<AttendanceView> {
             Expanded(
               child: BlocBuilder<AttendanceCubit, AttendanceState>(
                 builder: (context, state) {
+                  final user = SharedPrefHelper.getUser();
                   if (state is AttendanceLoading) {
                     return const Center(child: CircularProgressIndicator());
                   } else if (state is AttendanceHistoryLoaded) {
@@ -224,8 +232,9 @@ class _AttendanceViewState extends State<AttendanceView> {
                         }
 
                         final attendance = state.attendanceList[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 12),
+                        return Container(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          width: double.infinity,
                           child: ListTile(
                             leading: CircleAvatar(
                               backgroundColor:
@@ -287,10 +296,12 @@ class _AttendanceViewState extends State<AttendanceView> {
                           const SizedBox(height: 16),
                           ElevatedButton(
                             onPressed: () {
+                              print(' screen tenant id : ${user!.tenantId}');
+
                               context
                                   .read<AttendanceCubit>()
-                                  .getAttendanceHistory(
-                                    userId: 'current-user-id',
+                                  .getAttendanceHistoryByTenant(
+                                    tenantId: user.tenantId.toString(),
                                     refresh: true,
                                   );
                             },

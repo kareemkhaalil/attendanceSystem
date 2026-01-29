@@ -2,6 +2,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:manzoma/core/enums/user_role.dart';
 import 'package:manzoma/core/entities/user_entity.dart';
+import 'package:manzoma/features/auth/data/models/user_model.dart';
 import 'package:manzoma/features/users/domain/usecases/update_users_usecase.dart';
 import '../../domain/usecases/get_users_usecase.dart';
 import '../../domain/usecases/create_user_usecase.dart';
@@ -41,7 +42,8 @@ class UserCubit extends Cubit<UserState> {
 
     result.fold(
       (failure) => emit(UserError(message: failure.message)),
-      (users) => emit(UserLoaded(users: users)),
+      (users) => emit(UserLoaded(
+          users: users.map((e) => UserModel.fromEntity(e)).toList())),
     );
   }
 

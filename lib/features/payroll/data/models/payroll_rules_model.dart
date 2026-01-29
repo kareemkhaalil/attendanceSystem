@@ -29,9 +29,9 @@ class PayrollRuleModel extends PayrollRuleEntity {
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
+  @override
+  Map<String, dynamic> toJson({bool forInsert = false}) {
+    final map = {
       'tenant_id': tenantId,
       'name': name,
       'description': description,
@@ -39,8 +39,11 @@ class PayrollRuleModel extends PayrollRuleEntity {
       'calculation_method': calculationMethod,
       'value': value,
       'is_automatic': isAutomatic,
-      'created_at': createdAt.toIso8601String(),
-      'updated_at': updatedAt.toIso8601String(),
     };
+    if (!forInsert) {
+      map['id'] = id;
+      map['updated_at'] = updatedAt.toIso8601String();
+    }
+    return map;
   }
 }

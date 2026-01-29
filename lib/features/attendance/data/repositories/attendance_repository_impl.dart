@@ -43,6 +43,31 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
   }
 
   @override
+  Future<Either<Failure, AttendanceEntity>> checkInWithQr({
+    required String token,
+    required double lat,
+    required double lng,
+  }) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final attendance = await remoteDataSource.checkInWithQr(
+          token: token,
+          lat: lat,
+          lng: lng,
+        );
+        return Right(attendance);
+      } on ServerException catch (e) {
+        return Left(ServerFailure(
+          message: e.message,
+          statusCode: e.statusCode,
+        ));
+      }
+    } else {
+      return const Left(NetworkFailure(message: 'لا يوجد اتصال بالإنترنت'));
+    }
+  }
+
+  @override
   Future<Either<Failure, AttendanceEntity>> checkOut({
     required String attendanceId,
     String? notes,
@@ -94,6 +119,37 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
     } else {
       return const Left(NetworkFailure(
         'لا يوجد اتصال بالإنترنت',
+      ));
+    }
+  }
+
+  // create getAttendanceHistoryByTenant
+  @override
+  Future<Either<Failure, List<AttendanceEntity>>> getAttendanceHistoryByTenant({
+    required String tenantId,
+    int? limit,
+    int? offset,
+  }) async {
+    if (await networkInfo.isConnected) {
+      try {
+        final attendanceList =
+            await remoteDataSource.getAttendanceHistoryByTenant(
+          tenantId: tenantId,
+          limit: limit,
+          offset: offset,
+        );
+        print('[DEBUG] attendanceList: $attendanceList');
+        return Right(attendanceList);
+      } on ServerException catch (e) {
+        print('[DEBUG] ServerException: ${e.message}');
+        return Left(ServerFailure(
+          message: e.message,
+          statusCode: e.statusCode,
+        ));
+      }
+    } else {
+      return const Left(NetworkFailure(
+        message: 'لا يوجد اتصال بالإنترنت',
       ));
     }
   }

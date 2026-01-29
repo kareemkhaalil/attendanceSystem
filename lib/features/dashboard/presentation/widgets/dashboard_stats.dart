@@ -1,7 +1,8 @@
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import 'package:manzoma/core/enums/user_role.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import '../cubit/dashboard_cubit.dart'; // تأكد من استيراد الـ Cubit
+import 'package:manzoma/core/enums/user_role.dart';
+import '../cubit/dashboard_cubit.dart';
 
 class DashboardStats extends StatelessWidget {
   final UserRole userRole;
@@ -13,30 +14,60 @@ class DashboardStats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // استخدام BlocBuilder للاستماع إلى حالات DashboardCubit
+    final theme = Theme.of(context);
+
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, state) {
         if (state is DashboardLoading || state is DashboardInitial) {
-          // عرض شاشة تحميل أنيقة أثناء جلب البيانات
-          return const Center(child: CircularProgressIndicator());
+          return const _StatsSkeleton();
         }
 
         if (state is DashboardError) {
-          return Center(child: Text('Error: ${state.message}'));
+          return Center(
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.withOpacity(0.08),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: theme.dividerColor.withOpacity(0.12)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.red),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text('Error: ${state.message}',
+                        style: theme.textTheme.bodyMedium),
+                  ),
+                ],
+              ),
+            ),
+          );
         }
 
         if (state is DashboardLoaded) {
-          // جلب الإحصائيات الحقيقية من الحالة
           final stats = _getStatsForRole(state);
+          final width = MediaQuery.of(context).size.width;
+          int columns = 2;
+          if (width >= 1200 && stats.length >= 4)
+            columns = 4;
+          else if (width >= 900 && stats.length >= 3) columns = 3;
+
+          final ratio = width >= 1200
+              ? 2.8
+              : width >= 900
+                  ? 2.6
+                  : 2.1;
 
           return GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: stats.length > 2 ? 4 : 2,
+              crossAxisCount: columns,
               crossAxisSpacing: 16,
               mainAxisSpacing: 16,
-              childAspectRatio: 5,
+              childAspectRatio: ratio,
             ),
             itemCount: stats.length,
             itemBuilder: (context, index) {
@@ -53,19 +84,18 @@ class DashboardStats extends StatelessWidget {
           );
         }
 
-        return const SizedBox.shrink(); // حالة افتراضية
+        return const SizedBox.shrink();
       },
     );
   }
 
-  // تم تعديل هذه الدالة لتستقبل الحالة (State) كمصدر للبيانات
   List<StatData> _getStatsForRole(DashboardLoaded state) {
     switch (userRole) {
       case UserRole.superAdmin:
         return [
           StatData(
             title: 'Total Clients',
-            value: state.totalClients.toString(), // <-- بيانات حقيقية
+            value: state.totalClients.toString(),
             icon: Icons.business,
             color: Colors.blue,
             trend: TrendType.up,
@@ -73,20 +103,20 @@ class DashboardStats extends StatelessWidget {
           ),
           StatData(
             title: 'Active Users',
-            value: state.activeUsers.toString(), // <-- بيانات حقيقية
+            value: state.activeUsers.toString(),
             icon: Icons.people,
             color: Colors.green,
             trend: TrendType.up,
             trendValue: '+8%',
           ),
-          // ... يمكنك إضافة باقي البطاقات بنفس الطريقة
+          // زوّد بطاقات تانية لو عايز
         ];
 
       case UserRole.cad:
         return [
           StatData(
             title: 'Total Employees',
-            value: state.totalEmployees.toString(), // <-- بيانات حقيقية
+            value: state.totalEmployees.toString(),
             icon: Icons.group,
             color: Colors.blue,
             trend: TrendType.up,
@@ -94,7 +124,7 @@ class DashboardStats extends StatelessWidget {
           ),
           StatData(
             title: 'Present Today',
-            value: state.presentToday.toString(), // <-- بيانات حقيقية
+            value: state.presentToday.toString(),
             icon: Icons.check_circle,
             color: Colors.green,
             trend: TrendType.up,
@@ -102,7 +132,7 @@ class DashboardStats extends StatelessWidget {
           ),
           StatData(
             title: 'Late Arrivals',
-            value: state.lateArrivals.toString(), // <-- بيانات حقيقية
+            value: state.lateArrivals.toString(),
             icon: Icons.schedule,
             color: Colors.orange,
             trend: TrendType.down,
@@ -110,18 +140,19 @@ class DashboardStats extends StatelessWidget {
           ),
           StatData(
             title: 'Absent Today',
-            value: state.absentToday.toString(), // <-- بيانات حقيقية
+            value: state.absentToday.toString(),
             icon: Icons.cancel,
             color: Colors.red,
             trend: TrendType.up,
             trendValue: '+1',
           ),
         ];
+
       case UserRole.branchManager:
         return [
           StatData(
             title: 'Total Employees',
-            value: state.totalEmployees.toString(), // <-- بيانات حقيقية
+            value: state.totalEmployees.toString(),
             icon: Icons.group,
             color: Colors.blue,
             trend: TrendType.up,
@@ -129,7 +160,7 @@ class DashboardStats extends StatelessWidget {
           ),
           StatData(
             title: 'Present Today',
-            value: state.presentToday.toString(), // <-- بيانات حقيقية
+            value: state.presentToday.toString(),
             icon: Icons.check_circle,
             color: Colors.green,
             trend: TrendType.up,
@@ -137,7 +168,7 @@ class DashboardStats extends StatelessWidget {
           ),
           StatData(
             title: 'Late Arrivals',
-            value: state.lateArrivals.toString(), // <-- بيانات حقيقية
+            value: state.lateArrivals.toString(),
             icon: Icons.schedule,
             color: Colors.orange,
             trend: TrendType.down,
@@ -145,7 +176,7 @@ class DashboardStats extends StatelessWidget {
           ),
           StatData(
             title: 'Absent Today',
-            value: state.absentToday.toString(), // <-- بيانات حقيقية
+            value: state.absentToday.toString(),
             icon: Icons.cancel,
             color: Colors.red,
             trend: TrendType.up,
@@ -154,7 +185,6 @@ class DashboardStats extends StatelessWidget {
         ];
 
       case UserRole.employee:
-        // إحصائيات الموظف قد تحتاج Cubit خاص بها أو تأتي من نفس Cubit الداشبورد
         return [
           StatData(
             title: 'Hours This Month',
@@ -177,8 +207,6 @@ class DashboardStats extends StatelessWidget {
   }
 }
 
-// باقي الكلاسات (StatCard, StatData, TrendType) تبقى كما هي
-// ...
 class StatCard extends StatelessWidget {
   final String title;
   final String value;
@@ -199,100 +227,179 @@ class StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final textColor = theme.textTheme.bodyLarge?.color;
+    final subtle = theme.textTheme.bodySmall?.color ??
+        (isDark ? Colors.white54 : Colors.black54);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeOut,
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: theme.dividerColor.withOpacity(0.18)),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 1),
+            color: isDark
+                ? Colors.black.withOpacity(0.25)
+                : Colors.black.withOpacity(0.06),
+            blurRadius: 12,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Stack(
         children: [
+          // لمسة خلفية خفيفة من لون البطاقة
+          Positioned(
+            right: -8,
+            top: -8,
+            child: Icon(icon, size: 96, color: color.withOpacity(0.08)),
+          ),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // أيقونة داخل دائرة متدرجة
               Container(
-                padding: const EdgeInsets.all(8),
+                width: 46,
+                height: 46,
                 decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  gradient: LinearGradient(
+                    colors: [color.withOpacity(0.25), color.withOpacity(0.55)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  shape: BoxShape.circle,
                 ),
-                child: Icon(
-                  icon,
-                  color: color,
-                  size: 24,
+                child: Icon(icon,
+                    color: isDark ? Colors.white : Colors.white, size: 24),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // السطر العلوي: الترند
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(title,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                                color: subtle, fontWeight: FontWeight.w600)),
+                        _TrendBadge(trend: trend, value: trendValue),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    // القيمة الكبيرة
+                    Text(
+                      value,
+                      style: theme.textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: textColor,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    // شريط ديكوري بسيط بنفس اللون
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(999),
+                      child: LinearProgressIndicator(
+                        value: 1,
+                        minHeight: 5,
+                        valueColor: AlwaysStoppedAnimation(
+                            color.withOpacity(isDark ? 0.9 : 0.8)),
+                        backgroundColor: color.withOpacity(0.12),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-              _buildTrendIndicator(),
             ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.black87,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade600,
-            ),
           ),
         ],
       ),
     );
   }
+}
 
-  Widget _buildTrendIndicator() {
-    IconData trendIcon;
-    Color trendColor;
+class _TrendBadge extends StatelessWidget {
+  final TrendType trend;
+  final String value;
+
+  const _TrendBadge({required this.trend, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    IconData icon;
+    Color color;
 
     switch (trend) {
       case TrendType.up:
-        trendIcon = Icons.trending_up;
-        trendColor = Colors.green;
+        icon = Icons.trending_up;
+        color = Colors.green;
         break;
       case TrendType.down:
-        trendIcon = Icons.trending_down;
-        trendColor = Colors.red;
+        icon = Icons.trending_down;
+        color = Colors.red;
         break;
       case TrendType.stable:
-        trendIcon = Icons.trending_flat;
-        trendColor = Colors.grey;
+        icon = Icons.trending_flat;
+        color = Colors.grey;
         break;
     }
 
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(
-          trendIcon,
-          size: 16,
-          color: trendColor,
-        ),
-        const SizedBox(width: 4),
-        Text(
-          trendValue,
-          style: TextStyle(
-            fontSize: 12,
-            color: trendColor,
-            fontWeight: FontWeight.w500,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.12),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: color.withOpacity(0.25)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 6),
+          Text(
+            value,
+            style: TextStyle(
+                fontSize: 12, color: color, fontWeight: FontWeight.w700),
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+}
+
+class _StatsSkeleton extends StatelessWidget {
+  const _StatsSkeleton();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final base = theme.dividerColor.withOpacity(0.18);
+
+    Widget box() => Container(
+          height: 86,
+          decoration: BoxDecoration(
+            color: base.withOpacity(0.35),
+            borderRadius: BorderRadius.circular(14),
+          ),
+        );
+
+    return GridView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: 4,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
+          childAspectRatio: 2.2),
+      itemBuilder: (_, __) => box(),
     );
   }
 }
