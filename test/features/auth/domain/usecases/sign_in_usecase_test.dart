@@ -50,7 +50,7 @@ void main() {
 
   test('should return failure when sign in fails', () async {
     // arrange
-    const tFailure = AuthFailure(message: 'Invalid credentials');
+    const tFailure = AuthFailure('Invalid credentials');
     when(mockAuthRepository.signIn(
             email: anyNamed('email'), password: anyNamed('password')))
         .thenAnswer((_) async => const Left(tFailure));

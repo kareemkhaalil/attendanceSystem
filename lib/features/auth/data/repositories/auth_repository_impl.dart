@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:manzoma/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:manzoma/features/auth/data/models/user_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -36,12 +37,13 @@ class AuthRepositoryImpl implements AuthRepository {
       } on ServerException catch (e) {
         return Left(ServerFailure(
           message: e.message.isNotEmpty ? e.message : 'خطأ في الخادم',
+
           statusCode: e.statusCode,
         ));
       }
     } else {
       return const Left(NetworkFailure(
-        message: 'لا يوجد اتصال بالإنترنت',
+        'لا يوجد اتصال بالإنترنت',
       ));
     }
   }
@@ -70,12 +72,13 @@ class AuthRepositoryImpl implements AuthRepository {
       } on ServerException catch (e) {
         return Left(ServerFailure(
           message: e.message.isNotEmpty ? e.message : 'خطأ في الخادم',
+
           statusCode: e.statusCode,
         ));
       }
     } else {
       return const Left(NetworkFailure(
-        message: 'لا يوجد اتصال بالإنترنت',
+        'لا يوجد اتصال بالإنترنت',
       ));
     }
   }
@@ -94,12 +97,13 @@ class AuthRepositoryImpl implements AuthRepository {
       } on ServerException catch (e) {
         return Left(ServerFailure(
           message: e.message.isNotEmpty ? e.message : 'خطأ في الخادم',
+
           statusCode: e.statusCode,
         ));
       }
     } else {
       return const Left(NetworkFailure(
-        message: 'لا يوجد اتصال بالإنترنت',
+        'لا يوجد اتصال بالإنترنت',
       ));
     }
   }
@@ -118,12 +122,13 @@ class AuthRepositoryImpl implements AuthRepository {
       } on ServerException catch (e) {
         return Left(ServerFailure(
           message: e.message.isNotEmpty ? e.message : 'خطأ في الخادم',
+
           statusCode: e.statusCode,
         ));
       }
     } else {
       return const Left(NetworkFailure(
-        message: 'لا يوجد اتصال بالإنترنت',
+        'لا يوجد اتصال بالإنترنت',
       ));
     }
   }
@@ -147,12 +152,13 @@ class AuthRepositoryImpl implements AuthRepository {
       } on ServerException catch (e) {
         return Left(ServerFailure(
           message: e.message.isNotEmpty ? e.message : 'فشل تحديث الملف الشخصي',
+
           statusCode: e.statusCode,
         ));
       }
     } else {
       return const Left(NetworkFailure(
-        message: 'لا يوجد اتصال بالإنترنت',
+        'لا يوجد اتصال بالإنترنت',
       ));
     }
   }
@@ -172,12 +178,13 @@ class AuthRepositoryImpl implements AuthRepository {
       } on ServerException catch (e) {
         return Left(ServerFailure(
           message: e.message.isNotEmpty ? e.message : 'خطأ في الخادم',
+
           statusCode: e.statusCode,
         ));
       }
     } else {
       return const Left(NetworkFailure(
-        message: 'لا يوجد اتصال بالإنترنت',
+        'لا يوجد اتصال بالإنترنت',
       ));
     }
   }

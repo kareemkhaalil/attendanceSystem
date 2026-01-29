@@ -70,10 +70,13 @@ class ClientRemoteDataSourceImpl implements ClientRemoteDataSource {
   @override
   Future<ClientModel> getClientById(String id) async {
     try {
-      final response =
-          await supabaseClient.from('tenants').select().eq('id', id).single();
+      final response = await supabaseClient
+          .from('tenants')
+          .select()
+          .eq('id', id)
+          .maybeSingle();
 
-      return ClientModel.fromJson(response);
+      return ClientModel.fromJson(response!);
     } catch (e) {
       throw ServerException(message: 'Failed to fetch client: $e');
     }
@@ -111,10 +114,10 @@ class ClientRemoteDataSourceImpl implements ClientRemoteDataSource {
             'current_users': 0,
           })
           .select()
-          .single();
+          .maybeSingle();
 
       print('Client created successfully: $response');
-      return ClientModel.fromJson(response);
+      return ClientModel.fromJson(response!);
     } catch (e) {
       print('Error creating client: $e');
       throw ServerException(message: 'Failed to create client: $e');
@@ -153,9 +156,9 @@ class ClientRemoteDataSourceImpl implements ClientRemoteDataSource {
           .update(updateData)
           .eq('id', id)
           .select()
-          .single();
+          .maybeSingle();
 
-      return ClientModel.fromJson(response);
+      return ClientModel.fromJson(response!);
     } catch (e) {
       throw ServerException(message: 'Failed to update client: $e');
     }

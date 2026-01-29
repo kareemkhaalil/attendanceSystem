@@ -31,8 +31,8 @@ class PayrollDetailRemoteDataSourceImpl
         .from('payroll_details')
         .insert(detail.toJson())
         .select()
-        .single();
-    return PayrollDetailModel.fromJson(response);
+        .maybeSingle();
+    return PayrollDetailModel.fromJson(response!);
   }
 
   @override

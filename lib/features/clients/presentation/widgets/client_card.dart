@@ -38,7 +38,7 @@ class ClientCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withOpacity(0.1),
+                      color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
@@ -70,7 +70,7 @@ class ClientCard extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color:
-                                    _getPlanColor(client.plan).withOpacity(0.1),
+                                    _getPlanColor(client.plan).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -90,8 +90,8 @@ class ClientCard extends StatelessWidget {
                               ),
                               decoration: BoxDecoration(
                                 color: client.isActive
-                                    ? Colors.green.withOpacity(0.1)
-                                    : Colors.red.withOpacity(0.1),
+                                    ? Colors.green.withValues(alpha: 0.1)
+                                    : Colors.red.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(

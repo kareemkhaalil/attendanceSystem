@@ -19,21 +19,19 @@ class PayrollRulesRepositoryImpl implements PayrollRulesRepository {
   @override
   Future<Either<Failure, List<PayrollRuleEntity>>> getAllRules(
       String tenantId) async {
-    if (!await networkInfo.isConnected)
-      return const Left(NetworkFailure(message: ''));
+    if (!await networkInfo.isConnected) return const Left(NetworkFailure(''));
     try {
       final models = await remoteDataSource.getPayrollRules(tenantId);
       return Right(models);
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message));
+      return Left(ServerFailure(e.message));
     }
   }
 
   @override
   Future<Either<Failure, PayrollRuleEntity>> createRule(
       PayrollRuleEntity rule) async {
-    if (!await networkInfo.isConnected)
-      return const Left(NetworkFailure(message: ''));
+    if (!await networkInfo.isConnected) return const Left(NetworkFailure(''));
     try {
       final model = PayrollRuleModel(
         id: rule.id,
@@ -50,15 +48,14 @@ class PayrollRulesRepositoryImpl implements PayrollRulesRepository {
       final result = await remoteDataSource.createPayrollRule(model);
       return Right(result);
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message));
+      return Left(ServerFailure(e.message));
     }
   }
 
   @override
   Future<Either<Failure, PayrollRuleEntity>> updateRule(
       PayrollRuleEntity rule) async {
-    if (!await networkInfo.isConnected)
-      return const Left(NetworkFailure(message: ''));
+    if (!await networkInfo.isConnected) return const Left(NetworkFailure(''));
     try {
       final model = PayrollRuleModel(
         id: rule.id,
@@ -75,19 +72,18 @@ class PayrollRulesRepositoryImpl implements PayrollRulesRepository {
       final result = await remoteDataSource.updatePayrollRule(model);
       return Right(result);
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message));
+      return Left(ServerFailure(e.message));
     }
   }
 
   @override
   Future<Either<Failure, void>> deleteRule(String ruleId) async {
-    if (!await networkInfo.isConnected)
-      return const Left(NetworkFailure(message: ''));
+    if (!await networkInfo.isConnected) return const Left(NetworkFailure(''));
     try {
       await remoteDataSource.deletePayrollRule(ruleId);
       return const Right(null);
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message));
+      return Left(ServerFailure(e.message));
     }
   }
 }

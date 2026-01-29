@@ -30,7 +30,7 @@ class LoginScreen extends StatelessWidget {
               const LoginView(),
               if (state is AuthLoading)
                 Container(
-                  color: Colors.black.withOpacity(0.3),
+                  color: Colors.black.withValues(alpha: 0.3),
                   child: const Center(
                     child: CircularProgressIndicator(color: Colors.white),
                   ),
@@ -290,7 +290,7 @@ class _LoginViewState extends State<LoginView>
             ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.15),
+                color: Colors.black.withValues(alpha: 0.15),
                 blurRadius: 6,
                 offset: const Offset(0, 4),
               ),

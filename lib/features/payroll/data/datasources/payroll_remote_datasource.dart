@@ -74,7 +74,7 @@
 //           .from('profiles')
 //           .select('name')
 //           .eq('id', userId)
-//           .single();
+//           .maybeSingle();
 
 //       // Calculate net salary
 //       final netSalary =
@@ -102,7 +102,7 @@
 //           .from('payroll')
 //           .insert(payrollData)
 //           .select()
-//           .single();
+//           .maybeSingle();
 
 //       return PayrollModel.fromJson(response);
 //     } on PostgrestException catch (e) {
@@ -234,7 +234,7 @@
 //             .from('payroll')
 //             .select('basic_salary, allowances, deductions, overtime, bonus')
 //             .eq('id', payrollId)
-//             .single();
+//             .maybeSingle();
 
 //         final newBasicSalary = basicSalary ?? current['basic_salary'];
 //         final newAllowances = allowances ?? current['allowances'];
@@ -254,7 +254,7 @@
 //           .update(updateData)
 //           .eq('id', payrollId)
 //           .select()
-//           .single();
+//           .maybeSingle();
 
 //       return PayrollModel.fromJson(response);
 //     } on PostgrestException catch (e) {
@@ -292,7 +292,7 @@
 //           })
 //           .eq('id', payrollId)
 //           .select()
-//           .single();
+//           .maybeSingle();
 
 //       return PayrollModel.fromJson(response);
 //     } on PostgrestException catch (e) {
@@ -316,7 +316,7 @@
 //           })
 //           .eq('id', payrollId)
 //           .select()
-//           .single();
+//           .maybeSingle();
 
 //       return PayrollModel.fromJson(response);
 //     } on PostgrestException catch (e) {

@@ -21,8 +21,14 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 // Core
 import '../network/network_info.dart';
 import '../network/supabase_client.dart';
+import '../localization/cubit/locale_cubit.dart';
+import '../theme/cubit/theme_cubit.dart';
+
+// ===== Features =====
 
 // Auth
+import '../../features/auth/presentation/cubit/auth_cubit.dart';
+import '../../features/auth/presentation/cubit/login_cubit.dart';
 import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
@@ -31,7 +37,19 @@ import '../../features/auth/domain/usecases/sign_up_usecase.dart';
 import '../../features/auth/domain/usecases/sign_out_usecase.dart';
 import '../../features/auth/domain/usecases/get_current_user_usecase.dart';
 
+// Clients
+import '../../features/clients/presentation/cubit/client_cubit.dart';
+import '../../features/clients/data/datasources/client_remote_datasource.dart';
+import '../../features/clients/data/repositories/client_repository_impl.dart';
+import '../../features/clients/domain/repositories/client_repository.dart';
+import '../../features/clients/domain/usecases/create_client_usecase.dart';
+import '../../features/clients/domain/usecases/delete_client_usecase.dart';
+import '../../features/clients/domain/usecases/get_client_by_id_usecase.dart';
+import '../../features/clients/domain/usecases/get_clients_usecase.dart';
+import '../../features/clients/domain/usecases/update_client_usecase.dart';
+
 // Users
+import '../../features/users/presentation/cubit/user_cubit.dart';
 import '../../features/users/data/datasources/user_remote_datasource.dart';
 import '../../features/users/data/repositories/user_repository_impl.dart';
 import '../../features/users/domain/repositories/user_repository.dart';
@@ -50,6 +68,7 @@ import '../../features/clients/domain/usecases/get_clients_usecase.dart';
 import '../../features/clients/domain/usecases/update_client_usecase.dart';
 
 // Branches
+import '../../features/branches/presentation/cubit/branch_cubit.dart';
 import '../../features/branches/data/datasources/branch_remote_datasource.dart';
 import '../../features/branches/data/repositories/branch_repository_impl.dart';
 import '../../features/branches/domain/repositories/branch_repository.dart';
@@ -57,6 +76,7 @@ import '../../features/branches/domain/usecases/get_branches_usecase.dart';
 import '../../features/branches/domain/usecases/create_branch_usecase.dart';
 
 // Attendance
+import '../../features/attendance/presentation/cubit/attendance_cubit.dart';
 import '../../features/attendance/data/datasources/attendance_remote_datasource.dart';
 import '../../features/attendance/data/repositories/attendance_repository_impl.dart';
 import '../../features/attendance/domain/repositories/attendance_repository.dart';
@@ -65,6 +85,7 @@ import '../../features/attendance/domain/usecases/check_out_usecase.dart';
 import '../../features/attendance/domain/usecases/get_attendance_history_usecase.dart';
 
 // Payroll
+import '../../features/payroll/presentation/cubit/payroll_cubit.dart';
 import '../../features/payroll/data/datasources/payroll_remote_datasource.dart';
 import '../../features/payroll/data/datasources/payroll_details_datasource.dart';
 import '../../features/payroll/data/datasources/payroll_rules_remote_datasource.dart';

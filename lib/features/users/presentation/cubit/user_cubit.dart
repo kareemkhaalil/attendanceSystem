@@ -6,6 +6,7 @@ import 'package:manzoma/features/auth/data/models/user_model.dart';
 import 'package:manzoma/features/users/domain/usecases/update_users_usecase.dart';
 import '../../domain/usecases/get_users_usecase.dart';
 import '../../domain/usecases/create_user_usecase.dart';
+import '../../domain/usecases/delete_user_usecase.dart';
 
 part 'user_state.dart';
 
@@ -13,11 +14,13 @@ class UserCubit extends Cubit<UserState> {
   final GetUsersUseCase getUsersUseCase;
   final CreateUserUseCase createUserUseCase;
   final UpdateUsersUsecase updateUsersUsecase;
+  final DeleteUserUseCase deleteUserUseCase;
 
   UserCubit({
     required this.getUsersUseCase,
     required this.createUserUseCase,
     required this.updateUsersUsecase,
+    required this.deleteUserUseCase,
   }) : super(UserInitial());
 
   Future<void> getUsers({
@@ -84,6 +87,17 @@ class UserCubit extends Cubit<UserState> {
           emit(UserUpdated(users: [updatedUser]));
         }
       },
+    );
+  }
+
+  Future<void> deleteUser(String userId) async {
+    emit(UserLoading());
+
+    final result = await deleteUserUseCase(DeleteUserParams(id: userId));
+
+    result.fold(
+      (failure) => emit(UserError(message: failure.message)),
+      (_) => emit(UserDeleted(userId: userId)),
     );
   }
 }

@@ -75,10 +75,13 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   @override
   Future<UserModel> getUserById(String id) async {
     try {
-      final response =
-          await supabaseClient.from('users').select().eq('id', id).single();
+      final response = await supabaseClient
+          .from('users')
+          .select()
+          .eq('id', id)
+          .maybeSingle();
 
-      return UserModel.fromJson(response);
+      return UserModel.fromJson(response!);
     } catch (e) {
       throw Exception('Failed to get user: $e');
     }
@@ -119,12 +122,12 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
           .from('users')
           .upsert(userDataPayload, onConflict: 'id')
           .select()
-          .single();
+          .maybeSingle();
 
       // 5. Increment tenant counter directly in DB
       await supabaseClient.rpc(
         'increment_current_users',
-        params: {'p_tenant_id': insertedUser['tenant_id']},
+        params: {'p_tenant_id': insertedUser!['tenant_id']},
       );
 
       // 6. Return mapped user
@@ -143,9 +146,9 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
           .update(user.toCreateJson())
           .eq('id', id)
           .select()
-          .single();
+          .maybeSingle();
 
-      return UserModel.fromJson(response);
+      return UserModel.fromJson(response!);
     } catch (e) {
       throw Exception('Failed to update user: $e');
     }

@@ -31,13 +31,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         return Right(attendance);
       } on ServerException catch (e) {
         return Left(ServerFailure(
-          message: e.message,
+          e.message,
           statusCode: e.statusCode,
         ));
       }
     } else {
       return const Left(NetworkFailure(
-        message: 'لا يوجد اتصال بالإنترنت',
+        'لا يوجد اتصال بالإنترنت',
       ));
     }
   }
@@ -81,13 +81,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         return Right(attendance);
       } on ServerException catch (e) {
         return Left(ServerFailure(
-          message: e.message,
+          e.message,
           statusCode: e.statusCode,
         ));
       }
     } else {
       return const Left(NetworkFailure(
-        message: 'لا يوجد اتصال بالإنترنت',
+        'لا يوجد اتصال بالإنترنت',
       ));
     }
   }
@@ -112,13 +112,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         return Right(attendanceList);
       } on ServerException catch (e) {
         return Left(ServerFailure(
-          message: e.message,
+          e.message,
           statusCode: e.statusCode,
         ));
       }
     } else {
       return const Left(NetworkFailure(
-        message: 'لا يوجد اتصال بالإنترنت',
+        'لا يوجد اتصال بالإنترنت',
       ));
     }
   }
@@ -172,13 +172,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         return Right(attendanceList);
       } on ServerException catch (e) {
         return Left(ServerFailure(
-          message: e.message,
+          e.message,
           statusCode: e.statusCode,
         ));
       }
     } else {
       return const Left(NetworkFailure(
-        message: 'لا يوجد اتصال بالإنترنت',
+        'لا يوجد اتصال بالإنترنت',
       ));
     }
   }
@@ -203,13 +203,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         return Right(attendance);
       } on ServerException catch (e) {
         return Left(ServerFailure(
-          message: e.message,
+          e.message,
           statusCode: e.statusCode,
         ));
       }
     } else {
       return const Left(NetworkFailure(
-        message: 'لا يوجد اتصال بالإنترنت',
+        'لا يوجد اتصال بالإنترنت',
       ));
     }
   }
@@ -224,13 +224,13 @@ class AttendanceRepositoryImpl implements AttendanceRepository {
         return const Right(null);
       } on ServerException catch (e) {
         return Left(ServerFailure(
-          message: e.message,
+          e.message,
           statusCode: e.statusCode,
         ));
       }
     } else {
       return const Left(NetworkFailure(
-        message: 'لا يوجد اتصال بالإنترنت',
+        'لا يوجد اتصال بالإنترنت',
       ));
     }
   }

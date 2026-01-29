@@ -51,7 +51,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            onPressed: () => context.go('/branches/create'),
+            onPressed: () => context.push('/branches/create'),
             icon: const Icon(Icons.add, color: Colors.white),
             tooltip: 'إضافة فرع جديد',
           ),
@@ -219,7 +219,7 @@ class _BranchesScreenState extends State<BranchesScreen> {
                             onSelected: (value) {
                               if (value == 'edit') {
                                 // --- التوجيه لصفحة التعديل مع تمرير بيانات الفرع ---
-                                context.go('/branches/edit', extra: branch);
+                                context.push('/branches/edit', extra: branch);
                               } else if (value == 'delete') {
                                 // يمكنك إضافة منطق الحذف هنا لاحقًا
                               }

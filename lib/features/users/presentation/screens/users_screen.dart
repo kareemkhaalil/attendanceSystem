@@ -75,6 +75,23 @@ class _UsersScreenState extends State<UsersScreen> {
               }
             },
           ),
+          BlocListener<UserCubit, UserState>(
+            listener: (context, state) {
+              if (state is UserDeleted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('تم حذف المستخدم بنجاح'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+                // Refresh the users list
+                context.read<UserCubit>().getUsers(
+                      role: selectedRole,
+                      tenantId: selectedClientId,
+                    );
+              }
+            },
+          ),
         ],
         child: Column(
           children: [
@@ -283,16 +300,17 @@ class _UsersScreenState extends State<UsersScreen> {
                             ),
                             onEdit: () {
                               // يفتح شاشة التعديل
-                              context.go(
-                                '/users/edit', // 👈 MODIFIED: غيّر المسار إلى صفحة التعديل
+                              context.push(
+                                '/users/edit',
                                 extra: UsersEditScreen(
                                   editingUser: filteredUsers[index],
                                 ),
                               );
                             },
-                            onDelete: () {
-                              // يحذف المستخدم
-                            },
+                            onDelete: () => _showDeleteConfirmation(
+                              context,
+                              filteredUsers[index],
+                            ),
                           );
                         },
                       ),
@@ -312,6 +330,33 @@ class _UsersScreenState extends State<UsersScreen> {
     showDialog(
       context: context,
       builder: (context) => const AddUserDialog(),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, UserEntity user) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('تأكيد الحذف'),
+        content: Text('هل أنت متأكد من حذف المستخدم "${user.displayName}"؟\n\nهذا الإجراء لا يمكن التراجع عنه.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('إلغاء'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              context.read<UserCubit>().deleteUser(user.id);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('حذف'),
+          ),
+        ],
+      ),
     );
   }
 

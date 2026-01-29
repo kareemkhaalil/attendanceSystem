@@ -1,7 +1,7 @@
 import 'package:manzoma/core/enums/user_role.dart';
 import 'package:manzoma/core/storage/shared_pref_helper.dart';
 import 'package:manzoma/features/auth/domain/entities/user_entity.dart';
-import 'package:supabase_flutter/supabase_flutter.dart' hide AuthException;
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/supabase_client.dart';
 import '../models/user_model.dart';
@@ -50,7 +50,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.user == null) {
-        throw const AuthException(message: 'فشل تسجيل الدخول: لا يوجد مستخدم');
+
+        throw const AuthException(
+            'فشل في تسجيل الدخول: بيانات المستخدم غير موجودة');
+
       }
 
       final profileResponse = await supabaseClient
@@ -60,8 +63,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           .maybeSingle();
 
       if (profileResponse == null) {
-        throw const ServerException(
-            message: 'لم يتم العثور على بيانات المستخدم');
+
+        throw ServerException(
+          message: 'لم يتم العثور على ملف المستخدم في قاعدة البيانات',
+        );
+
       }
 
       final roleEnum = UserRoleX.fromValue(
@@ -114,7 +120,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       );
 
       if (response.user == null) {
-        throw const AuthException(message: 'فشل إنشاء الحساب');
+
+        throw const AuthException('فشل في إنشاء الحساب');
+
       }
 
       await supabaseClient.from('users').insert({
@@ -164,6 +172,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           .eq('id', user.id)
           .maybeSingle();
 
+
       if (profileResponse == null) {
         throw const AuthException(
           message: 'جلسة غير صالحة: لم يتم العثور على المستخدم',
@@ -174,6 +183,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'id': user.id,
         'email': user.email ?? '',
         ...profileResponse,
+
+
+
       });
     } on PostgrestException catch (e) {
       throw ServerException(message: e.message);
@@ -202,11 +214,13 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
           .select()
           .maybeSingle();
 
+
       if (response == null) {
         throw const ServerException(message: 'لم يتم تحديث المستخدم');
       }
 
-      return UserModel.fromJson(response);
+
+      return UserModel.fromJson(response!);
     } on PostgrestException catch (e) {
       throw ServerException(message: e.message);
     }

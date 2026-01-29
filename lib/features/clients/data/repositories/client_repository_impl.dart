@@ -28,10 +28,10 @@ class ClientRepositoryImpl implements ClientRepository {
         );
         return Right(clients);
       } on ServerException catch (e) {
-        return Left(ServerFailure(message: e.message));
+        return Left(ServerFailure(e.message));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 
@@ -42,10 +42,10 @@ class ClientRepositoryImpl implements ClientRepository {
         final client = await remoteDataSource.getClientById(id);
         return Right(client);
       } on ServerException catch (e) {
-        return Left(ServerFailure(message: e.message));
+        return Left(ServerFailure(e.message));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 
@@ -70,10 +70,10 @@ class ClientRepositoryImpl implements ClientRepository {
         );
         return Right(client);
       } on ServerException catch (e) {
-        return Left(ServerFailure(message: e.message));
+        return Left(ServerFailure(e.message));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 
@@ -102,10 +102,10 @@ class ClientRepositoryImpl implements ClientRepository {
         );
         return Right(client);
       } on ServerException catch (e) {
-        return Left(ServerFailure(message: e.message));
+        return Left(ServerFailure(e.message));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 
@@ -116,11 +116,10 @@ class ClientRepositoryImpl implements ClientRepository {
         await remoteDataSource.deleteClient(id);
         return const Right(null);
       } on ServerException catch (e) {
-        return Left(ServerFailure(message: e.message));
+        return Left(ServerFailure(e.message));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 }
-

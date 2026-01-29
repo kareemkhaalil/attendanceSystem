@@ -1,85 +1,78 @@
-// import 'package:bashkatep/core/bloc/attend_cubit/qr_cubit.dart';
-// import 'package:flutter/material.dart';
-// import 'package:flutter_test/flutter_test.dart';
-// import 'package:mockito/mockito.dart';
-// import 'package:bashkatep/core/repos/hive_repo/hive_repo.dart';
-// import 'package:bashkatep/core/helpers/firebase_helper/firestore_helper.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:manzoma/core/enums/user_role.dart';
+import 'package:manzoma/core/entities/user_entity.dart';
+import 'package:manzoma/features/users/domain/usecases/delete_user_usecase.dart';
 
-// // Mock classes
-// class MockFirestoreHelper extends Mock implements FirestoreHelper {}
+void main() {
+  group('UserEntity', () {
+    test('should create UserEntity with required fields', () {
+      final user = UserEntity(
+        id: 'test-id',
+        tenantId: 'tenant-1',
+        email: 'test@example.com',
+        role: UserRole.employee,
+        name: 'Test User',
+        isActive: true,
+      );
 
-// class MockHiveRepo extends Mock implements HiveRepo {}
+      expect(user.id, 'test-id');
+      expect(user.tenantId, 'tenant-1');
+      expect(user.email, 'test@example.com');
+      expect(user.role, UserRole.employee);
+      expect(user.name, 'Test User');
+      expect(user.isActive, true);
+    });
 
-// void main() {
-//   late QRScanCubit qrScanCubit;
-//   late MockFirestoreHelper mockFirestoreHelper;
-//   late MockHiveRepo mockHiveClientRepo;
-//   late MockHiveRepo mockHiveAttendanceRepo;
-//   late MockHiveRepo mockHiveIsAttendRepo;
+    test('displayName should return name when available', () {
+      final user = UserEntity(
+        id: 'test-id',
+        tenantId: 'tenant-1',
+        email: 'test@example.com',
+        role: UserRole.employee,
+        name: 'Test User',
+        isActive: true,
+      );
 
-//   setUp(() {
-//     mockFirestoreHelper = MockFirestoreHelper();
-//     mockHiveClientRepo = MockHiveRepo();
-//     mockHiveAttendanceRepo = MockHiveRepo();
-//     mockHiveIsAttendRepo = MockHiveRepo();
-//     qrScanCubit = QRScanCubit();
-//   });
+      expect(user.displayName, 'Test User');
+    });
 
-//   group('checkBranchCode', () {
-//     test('emits QRScanFailure when client ID is not found', () async {
-//       when(mockHiveClientRepo.get('Prd3waZVUxy7htMPtJhe')).thenReturn(null);
+    test('displayName should return email when name is null', () {
+      final user = UserEntity(
+        id: 'test-id',
+        tenantId: 'tenant-1',
+        email: 'test@example.com',
+        role: UserRole.employee,
+        isActive: true,
+      );
 
-//       qrScanCubit.checkBranchCode(
-//         '888888',
-//         'GmFaLYEnD3TdkrxtuQk4IRWeYI92',
-//         'جمعه',
-//         BuildContext as BuildContext,
-//       );
-//       expect(qrScanCubit.state,
-//           equals(const QRScanFailure('Client ID not found.')));
-//     });
+      expect(user.displayName, 'test@example.com');
+    });
+  });
 
-//     test('emits QRScanSuccess when everything is correct', () async {
-//       // Setup your mock returns here
-//       // For example:
-//       // when(mockHiveClientRepo.get('clientId')).thenReturn('someClientId');
-//       // when(mockFirestoreHelper.getDocument(any, any)).thenAnswer((_) async => someDocumentSnapshot);
-//       // when(mockHiveAttendanceRepo.put(any, any)).thenAnswer((_) async => Future.value());
+  group('UserRole', () {
+    test('toValue should return correct string for each role', () {
+      expect(UserRole.superAdmin.toValue(), 'super_admin');
+      expect(UserRole.cad.toValue(), 'cad');
+      expect(UserRole.branchManager.toValue(), 'branch_manager');
+      expect(UserRole.employee.toValue(), 'employee');
+    });
 
-//       qrScanCubit.checkBranchCode(
-//         '888888',
-//         'GmFaLYEnD3TdkrxtuQk4IRWeYI92',
-//         'جمعه',
-//         BuildContext as BuildContext,
-//       );
-//       expect(qrScanCubit.state, equals(isA<QRScanSuccess>()));
-//     });
-//   });
+    test('fromValue should return correct role for each string', () {
+      expect(UserRoleExtension.fromValue('super_admin'), UserRole.superAdmin);
+      expect(UserRoleExtension.fromValue('cad'), UserRole.cad);
+      expect(UserRoleExtension.fromValue('branch_manager'), UserRole.branchManager);
+      expect(UserRoleExtension.fromValue('employee'), UserRole.employee);
+    });
 
-//   group('checkBranchCodeCheckOut', () {
-//     test('emits QRScanFailure when client ID is not found', () async {
-//       when(mockHiveClientRepo.get('Prd3waZVUxy7htMPtJhe')).thenReturn(null);
+    test('fromValue should default to employee for unknown values', () {
+      expect(UserRoleExtension.fromValue('unknown'), UserRole.employee);
+    });
+  });
 
-//       qrScanCubit.checkBranchCodeCheckOut(
-//         '888888',
-//         BuildContext as BuildContext,
-//       );
-//       expect(qrScanCubit.state,
-//           equals(const QRScanFailure('Client ID not found.')));
-//     });
-
-//     test('emits QRScanSuccess when everything is correct', () async {
-//       // Setup your mock returns here
-//       // For example:
-//       // when(mockHiveClientRepo.get('clientId')).thenReturn('someClientId');
-//       // when(mockFirestoreHelper.getDocument(any, any)).thenAnswer((_) async => someDocumentSnapshot);
-//       // when(mockHiveAttendanceRepo.delete(any)).thenAnswer((_) async => Future.value());
-
-//       qrScanCubit.checkBranchCodeCheckOut(
-//         '888888',
-//         BuildContext as BuildContext,
-//       );
-//       expect(qrScanCubit.state, equals(isA<QRScanSuccess>()));
-//     });
-//   });
-// }
+  group('DeleteUserParams', () {
+    test('should create params with id', () {
+      final params = DeleteUserParams(id: 'user-123');
+      expect(params.id, 'user-123');
+    });
+  });
+}

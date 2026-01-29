@@ -30,10 +30,10 @@ class BranchRepositoryImpl implements BranchRepository {
         );
         return Right(branches);
       } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
+        return Left(ServerFailure(e.toString()));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 
@@ -44,15 +44,16 @@ class BranchRepositoryImpl implements BranchRepository {
         final branch = await remoteDataSource.getBranchById(id);
         return Right(branch);
       } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
+        return Left(ServerFailure(e.toString()));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 
   @override
-  Future<Either<Failure, BranchEntity>> createBranch(BranchEntity branch) async {
+  Future<Either<Failure, BranchEntity>> createBranch(
+      BranchEntity branch) async {
     if (await networkInfo.isConnected) {
       try {
         final branchModel = BranchModel(
@@ -67,19 +68,20 @@ class BranchRepositoryImpl implements BranchRepository {
           createdAt: branch.createdAt,
           updatedAt: branch.updatedAt,
         );
-        
+
         final createdBranch = await remoteDataSource.createBranch(branchModel);
         return Right(createdBranch);
       } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
+        return Left(ServerFailure(e.toString()));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 
   @override
-  Future<Either<Failure, BranchEntity>> updateBranch(String id, BranchEntity branch) async {
+  Future<Either<Failure, BranchEntity>> updateBranch(
+      String id, BranchEntity branch) async {
     if (await networkInfo.isConnected) {
       try {
         final branchModel = BranchModel(
@@ -94,14 +96,15 @@ class BranchRepositoryImpl implements BranchRepository {
           createdAt: branch.createdAt,
           updatedAt: branch.updatedAt,
         );
-        
-        final updatedBranch = await remoteDataSource.updateBranch(id, branchModel);
+
+        final updatedBranch =
+            await remoteDataSource.updateBranch(id, branchModel);
         return Right(updatedBranch);
       } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
+        return Left(ServerFailure(e.toString()));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 
@@ -112,15 +115,16 @@ class BranchRepositoryImpl implements BranchRepository {
         await remoteDataSource.deleteBranch(id);
         return const Right(null);
       } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
+        return Left(ServerFailure(e.toString()));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 
   @override
-  Future<Either<Failure, List<BranchEntity>>> searchBranches(String query, {
+  Future<Either<Failure, List<BranchEntity>>> searchBranches(
+    String query, {
     String? tenantId,
   }) async {
     if (await networkInfo.isConnected) {
@@ -131,11 +135,10 @@ class BranchRepositoryImpl implements BranchRepository {
         );
         return Right(branches);
       } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
+        return Left(ServerFailure(e.toString()));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 }
-

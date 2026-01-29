@@ -96,25 +96,72 @@ class _DashboardScreenState extends State<DashboardScreen>
         BlocProvider.value(value: _dashboardCubit),
         BlocProvider.value(value: _activityCubit),
       ],
-      child: Directionality(
-        textDirection: TextDirection.ltr, // شاشة دي إنجليزي، غيّرها لو عايز RTL
-        child: Scaffold(
-          extendBodyBehindAppBar: true,
-          backgroundColor: Colors.transparent,
-          appBar: AppBar(
-            elevation: 0,
-            backgroundColor: Colors.transparent,
-            title: Text("Dashboard",
-                style: TextStyle(
-                    color: g.onGlassPrimary, fontWeight: FontWeight.w700)),
-            actions: [
-              IconButton(
-                tooltip: 'Refresh',
-                icon: Icon(Icons.refresh, color: g.onGlassPrimary),
-                onPressed: _onRefresh,
-              ),
-              const SizedBox(width: 8),
-            ],
+      child: Scaffold(
+        backgroundColor: Colors.grey.shade100,
+        body: FadeTransition(
+          opacity: _fadeAnim,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final isMobile = constraints.maxWidth < 800;
+              return SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildWelcomeSection(context),
+                    const SizedBox(height: 24),
+                    DashboardStats(userRole: _userRole),
+                    const SizedBox(height: 24),
+                    isMobile
+                        ? Column(
+                            children: [
+                              QuickActions(userRole: _userRole),
+                              const SizedBox(height: 24),
+                              RecentActivities(userRole: _userRole),
+                            ],
+                          )
+                        : Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: QuickActions(userRole: _userRole),
+                              ),
+                              const SizedBox(width: 24),
+                              Expanded(
+                                flex: 2,
+                                child: RecentActivities(userRole: _userRole),
+                              ),
+                            ],
+                          )
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWelcomeSection(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Theme.of(context).colorScheme.primary,
+            Theme.of(context).primaryColorDark,
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            offset: const Offset(0, 4),
+            blurRadius: 10,
           ),
           body: Stack(
             children: [
@@ -187,8 +234,18 @@ class _DashboardScreenState extends State<DashboardScreen>
                     },
                   ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 8),
+                Text(
+                  _getWelcomeSubtitle(),
+                  style: const TextStyle(fontSize: 16, color: Colors.white70),
+                ),
+              ],
+            ),
+          ),
+          Icon(
+            _getWelcomeIcon(),
+            size: 80,
+            color: Colors.white.withValues(alpha: 0.2),
           ),
         ),
       ),

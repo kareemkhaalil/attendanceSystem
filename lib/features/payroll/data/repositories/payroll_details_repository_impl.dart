@@ -19,7 +19,7 @@ class PayrollDetailRepositoryImpl implements PayrollDetailRepository {
       final result = await remoteDataSource.getDetailsByPayrollId(payrollId);
       return Right(result);
     } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -31,7 +31,7 @@ class PayrollDetailRepositoryImpl implements PayrollDetailRepository {
       final result = await remoteDataSource.addDetail(model);
       return Right(result);
     } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
+      return Left(ServerFailure(e.toString()));
     }
   }
 
@@ -41,7 +41,7 @@ class PayrollDetailRepositoryImpl implements PayrollDetailRepository {
       await remoteDataSource.deleteDetail(detailId);
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure(message: e.toString()));
+      return Left(ServerFailure(e.toString()));
     }
   }
 }

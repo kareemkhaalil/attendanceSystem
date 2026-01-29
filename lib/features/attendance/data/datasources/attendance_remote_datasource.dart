@@ -77,12 +77,12 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
           .from('users')
           .select('name, tenant_id')
           .eq('id', userId)
-          .single();
+          .maybeSingle();
 
-      final clientId = userProfile['tenant_id'];
+      final clientId = userProfile!['tenant_id'];
 
       if (clientId == null) {
-        throw const ServerException(message: "المستخدم غير مرتبط بعميل");
+        throw ServerException(message: "المستخدم غير مرتبط بعميل");
       }
 
       // ✅ Get all branches for this client
@@ -92,8 +92,7 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
           .eq('tenant_id', clientId);
 
       if (branches.isEmpty) {
-        throw const ServerException(
-            message: "لم يتم العثور على أي فروع للعميل");
+        throw ServerException(message: "لم يتم العثور على أي فروع للعميل");
       }
 
       // ✅ Check if user is inside any branch radius
@@ -120,8 +119,7 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
       }
 
       if (matchedBranch == null) {
-        throw const ServerException(
-            message: "أنت خارج نطاق أي فرع تابع لهذا العميل");
+        throw ServerException(message: "أنت خارج نطاق أي فرع تابع لهذا العميل");
       }
 
       // ✅ Check if already checked in today
@@ -156,9 +154,9 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
           .from('attendance_with_users')
           .insert(attendanceData)
           .select()
-          .single();
+          .maybeSingle();
 
-      return AttendanceModel.fromJson(response);
+      return AttendanceModel.fromJson(response!);
     } on PostgrestException catch (e) {
       throw ServerException(
         message: e.message,
@@ -230,9 +228,9 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
           .update(updateData)
           .eq('id', attendanceId)
           .select()
-          .single();
+          .maybeSingle();
 
-      return AttendanceModel.fromJson(response);
+      return AttendanceModel.fromJson(response!);
     } on PostgrestException catch (e) {
       throw ServerException(
         message: e.message,
@@ -412,9 +410,9 @@ class AttendanceRemoteDataSourceImpl implements AttendanceRemoteDataSource {
           .update(updateData)
           .eq('id', attendanceId)
           .select()
-          .single();
+          .maybeSingle();
 
-      return AttendanceModel.fromJson(response);
+      return AttendanceModel.fromJson(response!);
     } on PostgrestException catch (e) {
       throw ServerException(
         message: e.message,

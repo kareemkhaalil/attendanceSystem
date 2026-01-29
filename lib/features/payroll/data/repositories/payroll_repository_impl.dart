@@ -244,13 +244,13 @@ class PayrollRepositoryImpl implements PayrollRepository {
   Future<Either<Failure, List<PayrollEntity>>> getAllPayrolls(
       String tenantId) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'لا يوجد اتصال بالإنترنت'));
+      return const Left(NetworkFailure('لا يوجد اتصال بالإنترنت'));
     }
     try {
       final models = await remoteDataSource.getAllPayrolls(tenantId);
       return Right(models);
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message));
+      return Left(ServerFailure(e.message));
     }
   }
 
@@ -258,16 +258,16 @@ class PayrollRepositoryImpl implements PayrollRepository {
   Future<Either<Failure, PayrollEntity>> getPayrollById(
       String payrollId) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'لا يوجد اتصال بالإنترنت'));
+      return const Left(NetworkFailure('لا يوجد اتصال بالإنترنت'));
     }
     try {
       final model = await remoteDataSource.getPayrollById(payrollId);
       if (model == null) {
-        return const Left(ServerFailure(message: 'لم يتم العثور على البيانات'));
+        return const Left(ServerFailure('لم يتم العثور على البيانات'));
       }
       return Right(model);
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message));
+      return Left(ServerFailure(e.message));
     }
   }
 
@@ -275,30 +275,30 @@ class PayrollRepositoryImpl implements PayrollRepository {
   Future<Either<Failure, PayrollEntity>> createPayroll(
       PayrollEntity payroll) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'لا يوجد اتصال بالإنترنت'));
+      return const Left(NetworkFailure('لا يوجد اتصال بالإنترنت'));
     }
     try {
       final model = await remoteDataSource
           .createPayroll(PayrollModel.fromEntity(payroll)); // ✅
       if (model == null) {
-        return const Left(ServerFailure(message: 'فشل إنشاء الراتب'));
+        return const Left(ServerFailure('فشل إنشاء الراتب'));
       }
       return Right(model);
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message));
+      return Left(ServerFailure(e.message));
     }
   }
 
   @override
   Future<Either<Failure, void>> deletePayroll(String payrollId) async {
     if (!await networkInfo.isConnected) {
-      return const Left(NetworkFailure(message: 'لا يوجد اتصال بالإنترنت'));
+      return const Left(NetworkFailure('لا يوجد اتصال بالإنترنت'));
     }
     try {
       await remoteDataSource.deletePayroll(payrollId);
       return const Right(null);
     } on ServerException catch (e) {
-      return Left(ServerFailure(message: e.message));
+      return Left(ServerFailure(e.message));
     }
   }
 

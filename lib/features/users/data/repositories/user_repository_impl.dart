@@ -35,10 +35,10 @@ class UserRepositoryImpl implements UserRepository {
         );
         return Right(users);
       } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
+        return Left(ServerFailure(e.toString()));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 
@@ -49,10 +49,10 @@ class UserRepositoryImpl implements UserRepository {
         final user = await remoteDataSource.getUserById(id);
         return Right(user);
       } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
+        return Left(ServerFailure(e.toString()));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 
@@ -82,10 +82,10 @@ class UserRepositoryImpl implements UserRepository {
         final createdUser = await remoteDataSource.createUser(userModel);
         return Right(createdUser);
       } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
+        return Left(ServerFailure(e.toString()));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 
@@ -115,10 +115,10 @@ class UserRepositoryImpl implements UserRepository {
         final updatedUser = await remoteDataSource.updateUser(id, userModel);
         return Right(updatedUser);
       } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
+        return Left(ServerFailure(e.toString()));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 
@@ -129,10 +129,10 @@ class UserRepositoryImpl implements UserRepository {
         await remoteDataSource.deleteUser(id);
         return const Right(null);
       } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
+        return Left(ServerFailure(e.toString()));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 
@@ -151,10 +151,10 @@ class UserRepositoryImpl implements UserRepository {
         );
         return Right(users);
       } catch (e) {
-        return Left(ServerFailure(message: e.toString()));
+        return Left(ServerFailure(e.toString()));
       }
     } else {
-      return const Left(NetworkFailure(message: 'No internet connection'));
+      return const Left(NetworkFailure('No internet connection'));
     }
   }
 }
