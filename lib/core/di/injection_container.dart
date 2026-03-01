@@ -30,6 +30,7 @@ import '../../features/auth/domain/usecases/sign_in_usecase.dart';
 import '../../features/auth/domain/usecases/sign_up_usecase.dart';
 import '../../features/auth/domain/usecases/sign_out_usecase.dart';
 import '../../features/auth/domain/usecases/get_current_user_usecase.dart';
+import '../../features/auth/domain/usecases/reset_password_usecase.dart';
 
 // Users
 import '../../features/users/data/datasources/user_remote_datasource.dart';
