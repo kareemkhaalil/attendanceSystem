@@ -29,6 +29,7 @@ dependencies:
   timeago: ^3.7.1
   geolocator: ^14.0.2
   flutter_animate: ^4.5.2
+  google_fonts: ^6.2.1
   crypto: ^3.0.6
   convert: ^3.1.2
   qr_flutter: ^4.1.0

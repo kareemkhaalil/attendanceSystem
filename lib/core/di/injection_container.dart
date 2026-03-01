@@ -88,6 +88,14 @@ import '../../features/payroll/domain/usecases/get_payrolls.dart';
 import '../../features/payroll/domain/usecases/update_payroll.dart';
 import '../../features/payroll/domain/usecases/update_payroll_rule.dart';
 
+// Landing
+import '../../features/landing/data/datasources/landing_remote_datasource.dart';
+import '../../features/landing/data/repositories/landing_repository_impl.dart';
+import '../../features/landing/domain/repositories/landing_repository.dart';
+import '../../features/landing/domain/usecases/get_landing_content_usecase.dart';
+import '../../features/landing/domain/usecases/update_landing_content_usecase.dart';
+import '../../features/landing/presentation/cubit/landing_cubit.dart';
+
 final sl = GetIt.instance;
 
 Future<void> init() async {
@@ -97,6 +105,7 @@ Future<void> init() async {
 
   sl.registerFactory<LoginCubit>(() => LoginCubit());
   sl.registerFactory<AuthCubit>(() => AuthCubit());
+  sl.registerFactory<LandingCubit>(() => LandingCubit());
 
   sl.registerFactory<ClientCubit>(() => ClientCubit(
         getClientsUseCase: sl(),
@@ -146,6 +155,16 @@ Future<void> init() async {
       () => GetCurrentUserUseCase(sl()));
   sl.registerLazySingleton<ResetPasswordUseCase>(
       () => ResetPasswordUseCase(sl()));
+
+  // Landing
+  sl.registerLazySingleton<LandingRemoteDataSource>(
+      () => LandingRemoteDataSourceImpl(supabaseClient: sl()));
+  sl.registerLazySingleton<LandingRepository>(
+      () => LandingRepositoryImpl(remoteDataSource: sl()));
+  sl.registerLazySingleton<GetLandingContentUseCase>(
+      () => GetLandingContentUseCase(sl()));
+  sl.registerLazySingleton<UpdateLandingContentUseCase>(
+      () => UpdateLandingContentUseCase(sl()));
 
   // Users
   sl.registerLazySingleton<GetUsersUseCase>(() => GetUsersUseCase(sl()));

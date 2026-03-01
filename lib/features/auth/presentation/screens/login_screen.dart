@@ -191,10 +191,9 @@ class _LoginViewState extends State<LoginView>
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Hero(
-                tag: "logo",
-                child: Image.asset("assets/images/Asset 1.png", width: 140),
-              ),
+              // على الموبايل بس نعرض اللوجو في الكارد (على الديسك توب موجود في الشمال)
+              if (isMobile)
+                Image.asset("assets/images/Asset 1.png", width: 140),
               const SizedBox(height: 15),
               Text(
                 "Welcome Back 👋",

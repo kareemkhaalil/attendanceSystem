@@ -29,6 +29,9 @@ import '../../features/users/presentation/screens/users_create_screen.dart';
 import 'package:manzoma/features/reports/presentation/screens/reports_screen.dart';
 import 'package:manzoma/features/clients/presentation/screens/clients_screen.dart';
 import 'package:manzoma/features/clients/presentation/screens/clients_create_screen.dart';
+import 'package:manzoma/features/landing/presentation/screens/landing_screen.dart';
+import 'package:manzoma/features/landing/presentation/cubit/landing_cubit.dart';
+import 'package:manzoma/core/di/injection_container.dart';
 import '../navigation/route_names.dart';
 import '../navigation/navigation_service.dart';
 
@@ -44,6 +47,10 @@ class AppRouter {
 
       // Splash يشتغل دايمًا
       if (goingToSplash) return null;
+
+      // Landing Page متاحة للجميع
+      if (state.matchedLocation == '/') return null;
+
       if (!loggedIn && !goingToLogin) return RouteNames.login;
       if (loggedIn && goingToLogin) return RouteNames.dashboard;
 
@@ -79,6 +86,16 @@ class AppRouter {
       return null;
     },
     routes: [
+      // Landing Page (public)
+      GoRoute(
+        path: '/',
+        name: 'landing',
+        builder: (context, state) => BlocProvider(
+          create: (_) => sl<LandingCubit>(),
+          child: const LandingScreen(),
+        ),
+      ),
+
       // Splash/Login
       GoRoute(
         path: RouteNames.splash,
