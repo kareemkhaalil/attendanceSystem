@@ -122,7 +122,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
 
       // الحالة الثانية: Map<dynamic, dynamic>
     } catch (e) {
-      print('[QR] extractBranchId error: $e');
+      
     }
 
     return null;
@@ -133,11 +133,11 @@ class AttendanceCubit extends Cubit<AttendanceState> {
      ========================= */
   Future<void> startQrSession({int ttlSeconds = 58}) async {
     emit(AttendanceQrCreating());
-    print("[QR EMIT] AttendanceQrCreating");
+    
 
     try {
-      print("========== [QR DEBUG] START SESSION ==========");
-      print("[QR] TTL Seconds: $ttlSeconds");
+      
+      
 
       // ✅ 1. الموقع
       final position = await LocationHelper.getCurrentLocation();
@@ -153,15 +153,15 @@ class AttendanceCubit extends Cubit<AttendanceState> {
 
       await branchesResult.fold(
         (failure) async {
-          print("[QR ERROR] Failed to fetch branches: ${failure.message}");
+          
           emit(AttendanceQrError("فشل في تحميل الفروع: ${failure.message}"));
-          print("[QR EMIT] AttendanceQrError");
+          
         },
         (branches) async {
           const currentLat = 31.3943409;
           const currentLng = 31.7623989;
 
-          print("[QR] Total branches fetched: ${branches.length}");
+          
           for (final branch in branches) {
             final distance = LocationHelper.calculateDistanceMeters(
               currentLat,
@@ -169,18 +169,18 @@ class AttendanceCubit extends Cubit<AttendanceState> {
               branch.latitude,
               branch.longitude,
             );
-            print("[QR] Checking branch ${branch.name}, distance=$distance m");
+            
 
             if (distance <= (branch.radiusMeters ?? 5.0)) {
               matchedBranch = branch;
-              print("[QR ✅] Matched branch: ${branch.name} (${branch.id})");
+              
               break;
             }
           }
 
           if (matchedBranch == null) {
             emit(const AttendanceQrError("لم يتم العثور على فرع قريب"));
-            print("[QR EMIT] AttendanceQrError (no branch)");
+            
             return;
           }
 
@@ -190,14 +190,14 @@ class AttendanceCubit extends Cubit<AttendanceState> {
             'p_ttl_seconds': ttlSeconds,
           });
 
-          print("[QR] Supabase response: $res");
+          
 
           dynamic data = res;
           if (data is List && data.isNotEmpty) data = data.first;
 
           if (data == null || data is! Map) {
             emit(const AttendanceQrError("استجابة غير متوقعة من الخادم"));
-            print("[QR EMIT] AttendanceQrError (unexpected response)");
+            
             return;
           }
 
@@ -207,7 +207,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
 
           if (sessionId == null || sessionTokenHex == null) {
             emit(const AttendanceQrError("فشل في إنشاء الجلسة: بيانات مفقودة"));
-            print("[QR EMIT] AttendanceQrError (missing data)");
+            
             return;
           }
 
@@ -234,7 +234,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
           );
 
           emit(active);
-          print("[QR EMIT] $active");
+          
 
           // ✅ 5. المؤقت
           _qrTimer?.cancel();
@@ -243,7 +243,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
                 DateTime.now().toLocal().isAfter(_qrExpiresAt!)) {
               _qrTimer?.cancel();
               emit(AttendanceQrExpired());
-              print("[QR EMIT] AttendanceQrExpired");
+              
               return;
             }
 
@@ -256,7 +256,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
             if (current is AttendanceQrActive) {
               emit(current.copyWith(
                   qrText: upd.qrText, remainingSeconds: upd.remaining));
-              print("[QR EMIT] Updated QR (remaining=${upd.remaining})");
+              
             } else {
               emit(AttendanceQrActive(
                 sessionId: _qrSessionId!,
@@ -266,15 +266,15 @@ class AttendanceCubit extends Cubit<AttendanceState> {
                 qrText: upd.qrText,
                 remainingSeconds: upd.remaining,
               ));
-              print("[QR EMIT] Re-emitted AttendanceQrActive");
+              
             }
           });
         },
       );
     } catch (e) {
       emit(AttendanceQrError("خطأ: $e"));
-      print("[QR EXCEPTION] $e");
-      print("[QR EMIT] AttendanceQrError (exception)");
+      
+      
     }
   }
 
@@ -404,7 +404,7 @@ class AttendanceCubit extends Cubit<AttendanceState> {
     result.fold(
       (failure) {
         emit(AttendanceError(message: failure.message));
-        print('get all attendance error: ${failure.message}');
+        
       },
       (newAttendanceList) {
         final hasReachedMax = newAttendanceList.length < _limit;
@@ -419,13 +419,13 @@ class AttendanceCubit extends Cubit<AttendanceState> {
             attendanceList: updatedList,
             hasReachedMax: hasReachedMax,
           ));
-          print('get all attendance success: ${updatedList.length}');
+          
         } else {
           emit(AttendanceHistoryLoaded(
             attendanceList: newAttendanceList,
             hasReachedMax: hasReachedMax,
           ));
-          print('get all attendance success: ${newAttendanceList.length}');
+          
         }
       },
     );

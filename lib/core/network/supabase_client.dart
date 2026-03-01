@@ -1,16 +1,17 @@
+import 'package:manzoma/core/config/app_config.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class SupabaseConfig {
-  static const String supabaseUrl = 'https://ngjygharnzhlvcpmpxxy.supabase.co';
-  static const String supabaseAnonKey =
-      'sb_publishable_Rzf4wpnvJBVffpUTJxkYcQ_4Iq2oy61';
-
+  // ✅ المفاتيح تُقرأ من AppConfig (--dart-define) وليست مكتوبة هنا
   static SupabaseClient get client => Supabase.instance.client;
 
   static Future<void> initialize() async {
+    // التحقق من وجود المفاتيح قبل التهيئة
+    AppConfig.validate();
+
     await Supabase.initialize(
-      url: supabaseUrl,
-      anonKey: supabaseAnonKey,
+      url: AppConfig.supabaseUrl,
+      anonKey: AppConfig.supabaseAnonKey,
     );
   }
 }

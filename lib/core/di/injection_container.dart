@@ -143,6 +143,8 @@ Future<void> init() async {
   sl.registerLazySingleton<SignOutUseCase>(() => SignOutUseCase(sl()));
   sl.registerLazySingleton<GetCurrentUserUseCase>(
       () => GetCurrentUserUseCase(sl()));
+  sl.registerLazySingleton<ResetPasswordUseCase>(
+      () => ResetPasswordUseCase(sl()));
 
   // Users
   sl.registerLazySingleton<GetUsersUseCase>(() => GetUsersUseCase(sl()));

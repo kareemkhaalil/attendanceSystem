@@ -7,6 +7,7 @@ import '../../domain/usecases/sign_in_usecase.dart';
 import '../../domain/usecases/sign_up_usecase.dart';
 import '../../domain/usecases/sign_out_usecase.dart';
 import '../../domain/usecases/get_current_user_usecase.dart';
+import '../../domain/usecases/reset_password_usecase.dart';
 import 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
@@ -14,31 +15,33 @@ class AuthCubit extends Cubit<AuthState> {
   final SignUpUseCase _signUpUseCase;
   final SignOutUseCase _signOutUseCase;
   final GetCurrentUserUseCase _getCurrentUserUseCase;
+  final ResetPasswordUseCase _resetPasswordUseCase;
 
   AuthCubit({
     SignInUseCase? signInUseCase,
     SignUpUseCase? signUpUseCase,
     SignOutUseCase? signOutUseCase,
     GetCurrentUserUseCase? getCurrentUserUseCase,
+    ResetPasswordUseCase? resetPasswordUseCase,
   })  : _signInUseCase = signInUseCase ?? sl<SignInUseCase>(),
         _signUpUseCase = signUpUseCase ?? sl<SignUpUseCase>(),
         _signOutUseCase = signOutUseCase ?? sl<SignOutUseCase>(),
         _getCurrentUserUseCase =
             getCurrentUserUseCase ?? sl<GetCurrentUserUseCase>(),
+        _resetPasswordUseCase =
+            resetPasswordUseCase ?? sl<ResetPasswordUseCase>(),
         super(AuthInitial());
 
   /// Check if user is already logged in
   Future<void> checkAuthStatus() async {
     emit(AuthLoading());
 
-    // 1️⃣ Check local storage first
     final localUser = SharedPrefHelper.getUser();
     if (localUser != null) {
       emit(AuthAuthenticated(user: localUser));
       return;
     }
 
-    // 2️⃣ If not found locally, check server
     final result = await _getCurrentUserUseCase(const NoParams());
     result.fold(
       (failure) => emit(AuthUnauthenticated()),
@@ -68,7 +71,6 @@ class AuthCubit extends Cubit<AuthState> {
       (failure) => emit(AuthError(message: failure.message)),
       (user) async {
         await SharedPrefHelper.saveUser(UserModel.fromEntity(user));
-// Save locally
         emit(AuthAuthenticated(user: user));
       },
     );
@@ -96,7 +98,6 @@ class AuthCubit extends Cubit<AuthState> {
       (failure) => emit(AuthError(message: failure.message)),
       (user) async {
         await SharedPrefHelper.saveUser(UserModel.fromEntity(user));
-
         emit(AuthAuthenticated(user: user));
       },
     );
@@ -114,6 +115,20 @@ class AuthCubit extends Cubit<AuthState> {
         await SharedPrefHelper.clearUser();
         emit(AuthUnauthenticated());
       },
+    );
+  }
+
+  /// Send password reset email
+  Future<void> resetPassword({required String email}) async {
+    emit(AuthLoading());
+
+    final result = await _resetPasswordUseCase(
+      ResetPasswordParams(email: email),
+    );
+
+    result.fold(
+      (failure) => emit(AuthError(message: failure.message)),
+      (_) => emit(const AuthPasswordResetSent()),
     );
   }
 }

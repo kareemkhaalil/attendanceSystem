@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:manzoma/features/auth/presentation/cubit/auth_cubit.dart';
 import 'package:manzoma/features/auth/presentation/cubit/auth_state.dart';
+import 'package:manzoma/features/auth/presentation/screens/forgot_password_screen.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -227,40 +228,18 @@ class _LoginViewState extends State<LoginView>
               Align(
                 alignment: Alignment.centerRight,
                 child: TextButton(
-                  onPressed: () {},
-                  child: const Text("Forgot Password?"),
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const ForgotPasswordScreen(),
+                      ),
+                    );
+                  },
+                  child: const Text('نسيت كلمة المرور؟'),
                 ),
               ),
               const SizedBox(height: 25),
               _animatedButton(context),
-              const SizedBox(height: 20),
-              Divider(color: Colors.grey.shade300),
-              const SizedBox(height: 12),
-              Text("Quick Demo", style: TextStyle(color: Colors.grey.shade700)),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        _emailCtrl.text = "admin@demo.com";
-                        _passCtrl.text = "demo123";
-                      },
-                      child: const Text("Admin"),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: () {
-                        _emailCtrl.text = "employee@demo.com";
-                        _passCtrl.text = "demo123";
-                      },
-                      child: const Text("Employee"),
-                    ),
-                  ),
-                ],
-              )
             ],
           ),
         ),

@@ -55,3 +55,8 @@ lib.zip
 lib11.zip
 database_schema.sql
 lib (8).zip
+
+# Supabase keys - DO NOT COMMIT
+# launch.json يحتوي على مفاتيح Supabase عبر dart-define ولا يجب رفعه
+.vscode/launch.json
+*.env
