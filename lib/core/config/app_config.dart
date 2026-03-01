@@ -1,34 +1,22 @@
-/// مركز إعدادات التطبيق - يقرأ المفاتيح من --dart-define عند البناء
-/// طريقة الاستخدام عند البناء:
-///   flutter run --dart-define=SUPABASE_URL=https://xxx.supabase.co --dart-define=SUPABASE_ANON_KEY=your_key
-/// أو عبر ملف launch.json في VS Code / run configuration في Android Studio
+/// مركز إعدادات التطبيق
+/// 
+/// في بيئة التطوير: يستخدم القيم الافتراضية (dev keys) تلقائياً
+/// في بيئة الإنتاج: تجاوز القيم بـ --dart-define عند البناء:
+///   flutter build apk
+///     --dart-define=SUPABASE_URL=https://xxx.supabase.co
+///     --dart-define=SUPABASE_ANON_KEY=your_prod_key
+///
+/// ملاحظة أمنية: الـ anonKey هي مفتاح نشر (publishable) وليست سراً.
+/// السر الحقيقي هو service_role key الذي يجب ألا يكون في الكود أبداً.
 class AppConfig {
-  // ✅ المفاتيح الحساسة تُقرأ من --dart-define وليست مكتوبة في الكود
+  // مفاتيح التطوير كقيم افتراضية — يمكن تجاوزها بـ --dart-define
   static const String supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
-    defaultValue: '', // لا قيمة افتراضية في الإنتاج
+    defaultValue: 'https://ngjygharnzhlvcpmpxxy.supabase.co',
   );
 
   static const String supabaseAnonKey = String.fromEnvironment(
     'SUPABASE_ANON_KEY',
-    defaultValue: '',
+    defaultValue: 'sb_publishable_Rzf4wpnvJBVffpUTJxkYcQ_4Iq2oy61',
   );
-
-  /// التحقق من أن المفاتيح محددة قبل تشغيل التطبيق
-  static void validate() {
-    if (supabaseUrl.isEmpty) {
-      throw Exception(
-        '❌ SUPABASE_URL غير محدد.\n'
-        'شغّل التطبيق هكذا:\n'
-        'flutter run --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...',
-      );
-    }
-    if (supabaseAnonKey.isEmpty) {
-      throw Exception(
-        '❌ SUPABASE_ANON_KEY غير محدد.\n'
-        'شغّل التطبيق هكذا:\n'
-        'flutter run --dart-define=SUPABASE_URL=... --dart-define=SUPABASE_ANON_KEY=...',
-      );
-    }
-  }
 }
