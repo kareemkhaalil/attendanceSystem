@@ -182,9 +182,14 @@ class _PayrollRulesScreenState extends State<PayrollRulesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('إدارة قواعد الرواتب'),
+        title: const Text('قواعد الرواتب'),
         centerTitle: true,
         actions: [
+          IconButton(
+            onPressed: () => context.push('/payroll/settings'),
+            icon: const Icon(Icons.settings),
+            tooltip: 'إعدادات اللوائح',
+          ),
           IconButton(
             icon: const Icon(Icons.dashboard_outlined),
             onPressed: () => GoRouter.of(context).go('/payroll'),

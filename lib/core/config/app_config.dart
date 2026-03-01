@@ -12,11 +12,11 @@ class AppConfig {
   // مفاتيح التطوير كقيم افتراضية — يمكن تجاوزها بـ --dart-define
   static const String supabaseUrl = String.fromEnvironment(
     'SUPABASE_URL',
-    defaultValue: 'https://ngjygharnzhlvcpmpxxy.supabase.co',
+    defaultValue: 'https://hqzbeqocswgpvizfkygm.supabase.co',
   );
 
   static const String supabaseAnonKey = String.fromEnvironment(
     'SUPABASE_ANON_KEY',
-    defaultValue: 'sb_publishable_Rzf4wpnvJBVffpUTJxkYcQ_4Iq2oy61',
+    defaultValue: 'sb_publishable_Bot-ptSnohhz23tTrFMDEA_LXj3OLrh',
   );
 }

@@ -11,6 +11,7 @@ class LandingColors {
   static const Color textMuted = Color(0xFF6B7280);
   static const Color textLight = Color(0xFFB0B8C1);
   static const Color border = Color(0xFF2A3240);
+  static const Color cardBg = Color(0xFF141920); // 👈 Added this
   static const Color bgLight = Color(0xFFF8F9FA);
   static const Color textDark = Color(0xFF0B0F13);
 }

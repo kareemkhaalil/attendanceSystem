@@ -293,6 +293,9 @@ class _UsersScreenState extends State<UsersScreen> {
                             onDelete: () {
                               // يحذف المستخدم
                             },
+                            onViewSalaryProfile: (u) {
+                              context.push('/payroll/employee-profile', extra: u);
+                            },
                           );
                         },
                       ),

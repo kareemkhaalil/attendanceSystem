@@ -87,6 +87,12 @@ import '../../features/payroll/domain/usecases/get_payroll_rules.dart';
 import '../../features/payroll/domain/usecases/get_payrolls.dart';
 import '../../features/payroll/domain/usecases/update_payroll.dart';
 import '../../features/payroll/domain/usecases/update_payroll_rule.dart';
+import '../../features/payroll/domain/usecases/get_payroll_regulation_usecase.dart';
+import '../../features/payroll/domain/usecases/update_payroll_regulation_usecase.dart';
+import '../../features/payroll/domain/usecases/get_employee_salary_profile_usecase.dart';
+import '../../features/payroll/domain/usecases/upsert_employee_salary_profile_usecase.dart';
+import '../../features/payroll/domain/usecases/get_employee_salary_component_ids_usecase.dart';
+import '../../features/payroll/domain/usecases/update_employee_salary_components_usecase.dart';
 
 // Landing
 import '../../features/landing/data/datasources/landing_remote_datasource.dart';
@@ -95,6 +101,18 @@ import '../../features/landing/domain/repositories/landing_repository.dart';
 import '../../features/landing/domain/usecases/get_landing_content_usecase.dart';
 import '../../features/landing/domain/usecases/update_landing_content_usecase.dart';
 import '../../features/landing/presentation/cubit/landing_cubit.dart';
+
+// Payment
+import '../../features/payment/data/datasources/payment_remote_datasource.dart';
+import '../../features/payment/data/repositories/payment_repository_impl.dart';
+import '../../features/payment/domain/repositories/payment_repository.dart';
+import '../../features/payment/domain/usecases/get_plans_usecase.dart';
+import '../../features/payment/domain/usecases/get_payment_methods_usecase.dart';
+import '../../features/payment/domain/usecases/create_transaction_usecase.dart';
+import '../../features/payment/domain/usecases/get_subscription_usecase.dart';
+import '../../features/payment/domain/usecases/get_all_transactions_usecase.dart';
+import '../../features/payment/domain/usecases/approve_transaction_usecase.dart';
+import '../../features/payment/presentation/cubit/payment_cubit.dart';
 
 final sl = GetIt.instance;
 
@@ -106,6 +124,14 @@ Future<void> init() async {
   sl.registerFactory<LoginCubit>(() => LoginCubit());
   sl.registerFactory<AuthCubit>(() => AuthCubit());
   sl.registerFactory<LandingCubit>(() => LandingCubit());
+  sl.registerFactory<PaymentCubit>(() => PaymentCubit(
+        getPlans: sl(),
+        getMethods: sl(),
+        createTransaction: sl(),
+        getSubscription: sl(),
+        getAllTransactions: sl(),
+        approveTransaction: sl(),
+      ));
 
   sl.registerFactory<ClientCubit>(() => ClientCubit(
         getClientsUseCase: sl(),
@@ -144,6 +170,12 @@ Future<void> init() async {
         generatePayrollEntries: sl(),
         getClientsUseCase: sl(),
         getUsersUseCase: sl(),
+        getPayrollRegulationUseCase: sl(),
+        updatePayrollRegulationUseCase: sl(),
+        getEmployeeSalaryProfileUseCase: sl(),
+        upsertEmployeeSalaryProfileUseCase: sl(),
+        getEmployeeSalaryComponentIdsUseCase: sl(),
+        updateEmployeeSalaryComponentsUseCase: sl(),
       ));
 
   //! -------------------- UseCases --------------------
@@ -165,6 +197,23 @@ Future<void> init() async {
       () => GetLandingContentUseCase(sl()));
   sl.registerLazySingleton<UpdateLandingContentUseCase>(
       () => UpdateLandingContentUseCase(sl()));
+
+  // Payment
+  sl.registerLazySingleton<PaymentRemoteDataSource>(
+      () => PaymentRemoteDataSourceImpl(supabaseClient: sl()));
+  sl.registerLazySingleton<PaymentRepository>(
+      () => PaymentRepositoryImpl(remoteDataSource: sl()));
+  sl.registerLazySingleton<GetPlansUseCase>(() => GetPlansUseCase(sl()));
+  sl.registerLazySingleton<GetPaymentMethodsUseCase>(
+      () => GetPaymentMethodsUseCase(sl()));
+  sl.registerLazySingleton<CreateTransactionUseCase>(
+      () => CreateTransactionUseCase(sl()));
+  sl.registerLazySingleton<GetSubscriptionUseCase>(
+      () => GetSubscriptionUseCase(sl()));
+  sl.registerLazySingleton<GetAllTransactionsUseCase>(
+      () => GetAllTransactionsUseCase(sl()));
+  sl.registerLazySingleton<ApproveTransactionUseCase>(
+      () => ApproveTransactionUseCase(sl()));
 
   // Users
   sl.registerLazySingleton<GetUsersUseCase>(() => GetUsersUseCase(sl()));
@@ -218,6 +267,18 @@ Future<void> init() async {
   sl.registerLazySingleton<DeletePayrollRule>(() => DeletePayrollRule(sl()));
   sl.registerLazySingleton<GeneratePayrollEntries>(
       () => GeneratePayrollEntries(sl()));
+  sl.registerLazySingleton<GetPayrollRegulationUseCase>(
+      () => GetPayrollRegulationUseCase(sl()));
+  sl.registerLazySingleton<UpdatePayrollRegulationUseCase>(
+      () => UpdatePayrollRegulationUseCase(sl()));
+  sl.registerLazySingleton<GetEmployeeSalaryProfileUseCase>(
+      () => GetEmployeeSalaryProfileUseCase(sl()));
+  sl.registerLazySingleton<UpsertEmployeeSalaryProfileUseCase>(
+      () => UpsertEmployeeSalaryProfileUseCase(sl()));
+  sl.registerLazySingleton<GetEmployeeSalaryComponentIdsUseCase>(
+      () => GetEmployeeSalaryComponentIdsUseCase(sl()));
+  sl.registerLazySingleton<UpdateEmployeeSalaryComponentsUseCase>(
+      () => UpdateEmployeeSalaryComponentsUseCase(sl()));
 
   //! -------------------- Repositories --------------------
   // Auth

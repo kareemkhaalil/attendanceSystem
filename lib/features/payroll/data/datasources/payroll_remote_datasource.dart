@@ -1,6 +1,14 @@
-// import 'package:supabase_flutter/supabase_flutter.dart';
-// import '../../../../core/error/exceptions.dart';
-// import '../models/payroll_model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../../core/error/exceptions.dart';
+import '../models/payroll_model.dart';
+import '../models/payroll_regulation_model.dart';
+import '../models/employee_salary_profile_model.dart';
+import '../models/payroll_entry_model.dart';
+import '../models/payroll_detail_model.dart';
+import '../../domain/entities/payroll_regulation_entity.dart';
+import '../../domain/entities/employee_salary_profile_entity.dart';
+import '../../domain/entities/payroll_rules_entity.dart';
+import '../models/payroll_rules_model.dart';
 
 // abstract class PayrollRemoteDataSource {
 //   Future<PayrollModel> createPayroll({
@@ -352,6 +360,14 @@ abstract class PayrollRemoteDataSource {
     List<String>? userIds,
     required bool preview,
   });
+
+  // Advanced Payroll (Phase 4)
+  Future<PayrollRegulationModel?> getPayrollRegulation(String tenantId);
+  Future<PayrollRegulationModel> updatePayrollRegulation(PayrollRegulationModel regulation);
+  Future<EmployeeSalaryProfileModel?> getEmployeeSalaryProfile(String userId);
+  Future<EmployeeSalaryProfileModel> upsertEmployeeSalaryProfile(EmployeeSalaryProfileModel profile);
+  Future<List<String>> getEmployeeSalaryComponentIds(String profileId);
+  Future<void> updateEmployeeSalaryComponents(String profileId, List<String> ruleIds);
 }
 
 class PayrollRemoteDataSourceImpl implements PayrollRemoteDataSource {
@@ -513,5 +529,68 @@ class PayrollRemoteDataSourceImpl implements PayrollRemoteDataSource {
   @override
   Future<void> deletePayroll(String payrollId) async {
     await client.from('payroll').delete().eq('id', payrollId);
+  }
+
+  // ---- Advanced Payroll Methods ----
+
+  @override
+  Future<PayrollRegulationModel?> getPayrollRegulation(String tenantId) async {
+    final response = await client
+        .from('payroll_regulations')
+        .select()
+        .eq('tenant_id', tenantId)
+        .maybeSingle();
+    return response != null ? PayrollRegulationModel.fromJson(response) : null;
+  }
+
+  @override
+  Future<PayrollRegulationModel> updatePayrollRegulation(PayrollRegulationModel regulation) async {
+    final response = await client
+        .from('payroll_regulations')
+        .upsert(regulation.toJson())
+        .select()
+        .single();
+    return PayrollRegulationModel.fromJson(response);
+  }
+
+  @override
+  Future<EmployeeSalaryProfileModel?> getEmployeeSalaryProfile(String userId) async {
+    final response = await client
+        .from('employee_salary_profiles')
+        .select()
+        .eq('user_id', userId)
+        .maybeSingle();
+    return response != null ? EmployeeSalaryProfileModel.fromJson(response) : null;
+  }
+
+  @override
+  Future<EmployeeSalaryProfileModel> upsertEmployeeSalaryProfile(EmployeeSalaryProfileModel profile) async {
+    final response = await client
+        .from('employee_salary_profiles')
+        .upsert(profile.toJson())
+        .select()
+        .single();
+    return EmployeeSalaryProfileModel.fromJson(response);
+  }
+
+  @override
+  Future<List<String>> getEmployeeSalaryComponentIds(String profileId) async {
+    final response = await client
+        .from('employee_salary_components')
+        .select('rule_id')
+        .eq('profile_id', profileId);
+    return (response as List).map((e) => e['rule_id'] as String).toList();
+  }
+
+  @override
+  Future<void> updateEmployeeSalaryComponents(String profileId, List<String> ruleIds) async {
+    // 1. Delete existing components
+    await client.from('employee_salary_components').delete().eq('profile_id', profileId);
+
+    // 2. Insert new components
+    if (ruleIds.isNotEmpty) {
+      final inserts = ruleIds.map((rid) => {'profile_id': profileId, 'rule_id': rid}).toList();
+      await client.from('employee_salary_components').insert(inserts);
+    }
   }
 }

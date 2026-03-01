@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:manzoma/core/entities/user_entity.dart';
+import 'package:manzoma/features/payment/domain/entities/subscription_entity.dart';
 
 abstract class AuthState extends Equatable {
   const AuthState();
@@ -14,11 +15,12 @@ class AuthLoading extends AuthState {}
 
 class AuthAuthenticated extends AuthState {
   final UserEntity user;
+  final SubscriptionEntity? subscription;
 
-  const AuthAuthenticated({required this.user});
+  const AuthAuthenticated({required this.user, this.subscription});
 
   @override
-  List<Object> get props => [user];
+  List<Object?> get props => [user, subscription];
 }
 
 class AuthUnauthenticated extends AuthState {}

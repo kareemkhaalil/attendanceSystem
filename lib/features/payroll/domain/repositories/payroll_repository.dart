@@ -52,6 +52,8 @@
 
 import 'package:dartz/dartz.dart';
 import 'package:manzoma/features/payroll/domain/entities/payroll_detail_entity.dart';
+import 'package:manzoma/features/payroll/domain/entities/payroll_regulation_entity.dart';
+import 'package:manzoma/features/payroll/domain/entities/employee_salary_profile_entity.dart';
 import '../entities/payroll_entity.dart';
 import '../../../../core/error/failures.dart';
 
@@ -65,4 +67,12 @@ abstract class PayrollRepository {
     String payrollId,
     String tenantId,
   );
+
+  // Advanced Payroll (Phase 4)
+  Future<Either<Failure, PayrollRegulationEntity?>> getPayrollRegulation(String tenantId);
+  Future<Either<Failure, PayrollRegulationEntity>> updatePayrollRegulation(PayrollRegulationEntity regulation);
+  Future<Either<Failure, EmployeeSalaryProfileEntity?>> getEmployeeSalaryProfile(String userId);
+  Future<Either<Failure, EmployeeSalaryProfileEntity>> upsertEmployeeSalaryProfile(EmployeeSalaryProfileEntity profile);
+  Future<Either<Failure, List<String>>> getEmployeeSalaryComponentIds(String profileId);
+  Future<Either<Failure, void>> updateEmployeeSalaryComponents(String profileId, List<String> ruleIds);
 }

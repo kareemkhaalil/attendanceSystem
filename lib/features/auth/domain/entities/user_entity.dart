@@ -14,6 +14,7 @@ class UserEntity {
   final List<dynamic>? deductions;
   final Map<String, dynamic>? workSchedule;
   final bool? isActive;
+  final bool? isSubscriptionActive; // 👈 Add this
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -31,6 +32,7 @@ class UserEntity {
     this.deductions,
     this.workSchedule,
     this.isActive,
+    this.isSubscriptionActive, // 👈 Add this
     this.createdAt,
     this.updatedAt,
   });

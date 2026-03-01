@@ -34,8 +34,36 @@ class LandingCubit extends Cubit<LandingState> {
       (failure) => emit(LandingError(message: failure.message)),
       (_) {
         emit(LandingUpdateSuccess());
-        loadContent(); // أعد تحميل الكونتنت بعد الحفظ
+        loadContent();
       },
     );
+  }
+
+  Future<void> updateMultipleSections(
+      Map<String, Map<String, dynamic>> sections) async {
+    emit(LandingLoading());
+    bool hasError = false;
+    String? errorMessage;
+
+    for (var entry in sections.entries) {
+      final result = await _updateContent(
+        UpdateLandingParams(section: entry.key, content: entry.value),
+      );
+      result.fold(
+        (failure) {
+          hasError = true;
+          errorMessage = failure.message;
+        },
+        (_) {},
+      );
+      if (hasError) break;
+    }
+
+    if (hasError) {
+      emit(LandingError(message: errorMessage ?? 'Error updating sections'));
+    } else {
+      emit(LandingUpdateSuccess());
+      loadContent();
+    }
   }
 }

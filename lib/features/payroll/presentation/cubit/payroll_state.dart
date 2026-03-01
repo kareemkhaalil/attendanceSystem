@@ -1,6 +1,8 @@
 import 'package:equatable/equatable.dart';
 import 'package:manzoma/core/entities/user_entity.dart';
 import 'package:manzoma/features/clients/domain/entities/client_entity.dart';
+import 'package:manzoma/features/payroll/domain/entities/payroll_regulation_entity.dart';
+import 'package:manzoma/features/payroll/domain/entities/employee_salary_profile_entity.dart';
 import 'package:manzoma/features/payroll/domain/entities/payroll_rules_entity.dart';
 import '../../domain/entities/payroll_entity.dart';
 import '../../domain/entities/payroll_detail_entity.dart';
@@ -15,8 +17,11 @@ class PayrollState extends Equatable {
   final List<PayrollRuleEntity> rules;
   final List<ClientEntity>? clients; // 👈 جديد
   final List<UserEntity> employees;
+  final PayrollRegulationEntity? regulation; // Phase 4
+  final EmployeeSalaryProfileEntity? salaryProfile; // Phase 4
+  final List<String> selectedRuleIds; // Phase 4
   final String? errorMessage;
-  final String? message; // 👈 جديد
+  final String? message;
 
   const PayrollState({
     this.status = PayrollStatus.initial,
@@ -25,9 +30,12 @@ class PayrollState extends Equatable {
     this.details = const [],
     this.rules = const [],
     this.errorMessage,
-    this.clients = const [], // 👈 جديد
+    this.clients = const [],
     this.employees = const [],
-    this.message, // 👈 جديد
+    this.regulation,
+    this.salaryProfile,
+    this.selectedRuleIds = const [],
+    this.message,
   });
 
   PayrollState copyWith({
@@ -38,6 +46,9 @@ class PayrollState extends Equatable {
     List<PayrollRuleEntity>? rules,
     List<ClientEntity>? clients, // 👈 جديد
     List<UserEntity>? employees,
+    PayrollRegulationEntity? regulation,
+    EmployeeSalaryProfileEntity? salaryProfile,
+    List<String>? selectedRuleIds,
     String? errorMessage,
     String? message,
   }) {
@@ -49,8 +60,11 @@ class PayrollState extends Equatable {
       rules: rules ?? this.rules,
       clients: clients ?? this.clients, // 👈 جديد
       employees: employees ?? this.employees,
+      regulation: regulation ?? this.regulation,
+      salaryProfile: salaryProfile ?? this.salaryProfile,
+      selectedRuleIds: selectedRuleIds ?? this.selectedRuleIds,
       errorMessage: errorMessage,
-      message: message, // 👈 جديد
+      message: message,
     );
   }
 
@@ -63,6 +77,9 @@ class PayrollState extends Equatable {
         rules,
         clients,
         employees,
+        regulation,
+        salaryProfile,
+        selectedRuleIds,
         errorMessage,
         message
       ];

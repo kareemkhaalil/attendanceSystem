@@ -8,6 +8,7 @@ import '../../domain/usecases/sign_up_usecase.dart';
 import '../../domain/usecases/sign_out_usecase.dart';
 import '../../domain/usecases/get_current_user_usecase.dart';
 import '../../domain/usecases/reset_password_usecase.dart';
+import '../../../payment/domain/usecases/get_subscription_usecase.dart';
 import 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
@@ -16,6 +17,7 @@ class AuthCubit extends Cubit<AuthState> {
   final SignOutUseCase _signOutUseCase;
   final GetCurrentUserUseCase _getCurrentUserUseCase;
   final ResetPasswordUseCase _resetPasswordUseCase;
+  final GetSubscriptionUseCase _getSubscriptionUseCase;
 
   AuthCubit({
     SignInUseCase? signInUseCase,
@@ -30,6 +32,7 @@ class AuthCubit extends Cubit<AuthState> {
             getCurrentUserUseCase ?? sl<GetCurrentUserUseCase>(),
         _resetPasswordUseCase =
             resetPasswordUseCase ?? sl<ResetPasswordUseCase>(),
+        _getSubscriptionUseCase = sl<GetSubscriptionUseCase>(),
         super(AuthInitial());
 
   /// Check if user is already logged in
@@ -38,17 +41,21 @@ class AuthCubit extends Cubit<AuthState> {
 
     final localUser = SharedPrefHelper.getUser();
     if (localUser != null) {
-      emit(AuthAuthenticated(user: localUser));
+      final subResult = await _getSubscriptionUseCase(localUser.tenantId);
+      final subscription = subResult.fold((l) => null, (r) => r);
+      emit(AuthAuthenticated(user: localUser, subscription: subscription));
       return;
     }
 
     final result = await _getCurrentUserUseCase(const NoParams());
     result.fold(
       (failure) => emit(AuthUnauthenticated()),
-      (user) {
+      (user) async {
         if (user != null) {
           SharedPrefHelper.saveUser(UserModel.fromEntity(user));
-          emit(AuthAuthenticated(user: user));
+          final subResult = await _getSubscriptionUseCase(user.tenantId);
+          final subscription = subResult.fold((l) => null, (r) => r);
+          emit(AuthAuthenticated(user: user, subscription: subscription));
         } else {
           emit(AuthUnauthenticated());
         }
@@ -71,7 +78,9 @@ class AuthCubit extends Cubit<AuthState> {
       (failure) => emit(AuthError(message: failure.message)),
       (user) async {
         await SharedPrefHelper.saveUser(UserModel.fromEntity(user));
-        emit(AuthAuthenticated(user: user));
+        final subResult = await _getSubscriptionUseCase(user.tenantId);
+        final subscription = subResult.fold((l) => null, (r) => r);
+        emit(AuthAuthenticated(user: user, subscription: subscription));
       },
     );
   }
@@ -98,7 +107,9 @@ class AuthCubit extends Cubit<AuthState> {
       (failure) => emit(AuthError(message: failure.message)),
       (user) async {
         await SharedPrefHelper.saveUser(UserModel.fromEntity(user));
-        emit(AuthAuthenticated(user: user));
+        final subResult = await _getSubscriptionUseCase(user.tenantId);
+        final subscription = subResult.fold((l) => null, (r) => r);
+        emit(AuthAuthenticated(user: user, subscription: subscription));
       },
     );
   }

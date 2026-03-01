@@ -7,8 +7,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class UserCard extends StatelessWidget {
   final UserEntity user;
   final VoidCallback? onTap;
-  final VoidCallback? onEdit; // 👈 أضف callback للتعديل
-  final VoidCallback? onDelete; // 👈 أضف callback للحذف (اختياري)
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
+  final Function(UserEntity)? onViewSalaryProfile;
 
   const UserCard({
     super.key,
@@ -16,6 +17,7 @@ class UserCard extends StatelessWidget {
     this.onTap,
     this.onEdit,
     this.onDelete,
+    this.onViewSalaryProfile,
   });
 
   @override
@@ -152,6 +154,8 @@ class UserCard extends StatelessWidget {
                     onEdit!();
                   } else if (value == 'delete' && onDelete != null) {
                     onDelete!();
+                  } else if (value == 'salary' && onViewSalaryProfile != null) {
+                    onViewSalaryProfile!(user);
                   }
                 },
                 itemBuilder: (context) => [
@@ -165,6 +169,17 @@ class UserCard extends StatelessWidget {
                       ],
                     ),
                   ),
+                  if (user.role == UserRole.employee)
+                    const PopupMenuItem<String>(
+                      value: 'salary',
+                      child: Row(
+                        children: [
+                          Icon(Icons.account_balance_wallet, color: Colors.green),
+                          SizedBox(width: 8),
+                          Text('ملف الراتب'),
+                        ],
+                      ),
+                    ),
                   const PopupMenuItem<String>(
                     value: 'delete',
                     child: Row(

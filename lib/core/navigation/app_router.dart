@@ -14,6 +14,9 @@ import 'package:manzoma/features/employee/presentation/screens/employee_home_scr
 import 'package:manzoma/features/payroll/presentation/screens/employee_salary.dart';
 import 'package:manzoma/features/payroll/presentation/screens/employee_salary_screen.dart';
 import 'package:manzoma/features/payroll/presentation/screens/payroll_rules_screen.dart';
+import 'package:manzoma/features/payroll/presentation/screens/payroll_settings_screen.dart';
+import 'package:manzoma/features/payroll/presentation/screens/employee_salary_profile_screen.dart';
+import 'package:manzoma/features/users/domain/entities/user_entity.dart';
 import 'package:manzoma/features/users/presentation/screens/users_edit_screen.dart';
 import 'package:manzoma/shared/widgets/app_sidebar.dart';
 import 'package:manzoma/shared/widgets/app_topbar.dart';
@@ -30,7 +33,14 @@ import 'package:manzoma/features/reports/presentation/screens/reports_screen.dar
 import 'package:manzoma/features/clients/presentation/screens/clients_screen.dart';
 import 'package:manzoma/features/clients/presentation/screens/clients_create_screen.dart';
 import 'package:manzoma/features/landing/presentation/screens/landing_screen.dart';
+import 'package:manzoma/features/landing/presentation/screens/landing_admin_screen.dart';
 import 'package:manzoma/features/landing/presentation/cubit/landing_cubit.dart';
+import 'package:manzoma/features/payment/presentation/screens/plan_selection_screen.dart';
+import 'package:manzoma/features/payment/presentation/screens/admin_transactions_screen.dart';
+import 'package:manzoma/features/payment/presentation/screens/subscription_expired_screen.dart';
+import 'package:manzoma/features/payment/presentation/cubit/payment_cubit.dart';
+import 'package:manzoma/features/auth/presentation/cubit/auth_cubit.dart';
+import 'package:manzoma/features/auth/presentation/cubit/auth_state.dart';
 import 'package:manzoma/core/di/injection_container.dart';
 import '../navigation/route_names.dart';
 import '../navigation/navigation_service.dart';
@@ -58,11 +68,12 @@ class AppRouter {
       final role = user?.role ?? UserRole.employee;
       final loc = state.matchedLocation;
 
-      // SuperAdmin فقط يشوف العملاء
+      // SuperAdmin فقط يشوف العملاء ولوحة التحكم في اللاندنج
       if (role != UserRole.superAdmin) {
         if (loc == RouteNames.clients ||
             loc == RouteNames.createClient ||
-            loc.startsWith('/clients/')) {
+            loc.startsWith('/clients/') ||
+            loc == '/admin/landing') {
           return RouteNames.dashboard;
         }
       }
@@ -83,6 +94,35 @@ class AppRouter {
         }
       }
 
+      // 3. Subscription Guard
+      if (loggedIn && role != UserRole.superAdmin) {
+        final authState = context.read<AuthCubit>().state;
+        if (authState is AuthAuthenticated) {
+          final sub = authState.subscription;
+          final isSubActive = sub?.isActive ?? false;
+
+          // If subscription expired or none, force plans/expired screen
+          if (!isSubActive) {
+            if (loc != '/subscription/plans' && loc != '/subscription/expired') {
+              return '/subscription/expired';
+            }
+          } else if (sub != null && sub.plan != null) {
+            // Check feature flags (Modules)
+            final plan = sub.plan!;
+            
+            // Payroll Module Guard
+            if (loc.startsWith('/payroll') && !plan.hasPayroll) {
+              return RouteNames.dashboard; // Or a "Feature Locked" screen
+            }
+            
+            // Reports Module Guard
+            if (loc.startsWith('/reports') && !plan.hasReports) {
+              return RouteNames.dashboard;
+            }
+          }
+        }
+      }
+
       return null;
     },
     routes: [
@@ -93,6 +133,46 @@ class AppRouter {
         builder: (context, state) => BlocProvider(
           create: (_) => sl<LandingCubit>(),
           child: const LandingScreen(),
+        ),
+      ),
+
+      // Landing Admin CMS (super_admin only)
+      GoRoute(
+        path: '/admin/landing',
+        name: 'landingAdmin',
+        builder: (context, state) => BlocProvider(
+          create: (_) => sl<LandingCubit>(),
+          child: const LandingAdminScreen(),
+        ),
+      ),
+
+       // Admin Transactions (super_admin only)
+      GoRoute(
+        path: '/admin/transactions',
+        name: 'adminTransactions',
+        builder: (context, state) => BlocProvider(
+          create: (_) => sl<PaymentCubit>(),
+          child: const AdminTransactionsScreen(),
+        ),
+      ),
+
+      // Subscription Plans
+      GoRoute(
+        path: '/subscription/plans',
+        name: 'subscriptionPlans',
+        builder: (context, state) => BlocProvider(
+          create: (_) => sl<PaymentCubit>(),
+          child: const PlanSelectionScreen(),
+        ),
+      ),
+
+      // Subscription Expired
+      GoRoute(
+        path: '/subscription/expired',
+        name: 'subscriptionExpired',
+        builder: (context, state) => BlocProvider(
+          create: (_) => sl<PaymentCubit>(),
+          child: const SubscriptionExpiredScreen(),
         ),
       ),
 
@@ -170,6 +250,21 @@ class AppRouter {
               employees: List.from(extra['employees']),
             ),
           );
+        },
+      ),
+      GoRoute(
+        path: '/payroll/settings',
+        name: 'payrollSettings',
+        builder: (context, state) =>
+            const MainAppShell(child: PayrollSettingsScreen()),
+      ),
+      GoRoute(
+        path: '/payroll/employee-profile',
+        name: 'employeeSalaryProfile',
+        builder: (context, state) {
+          final employee = state.extra as UserEntity;
+          return MainAppShell(
+              child: EmployeeSalaryProfileScreen(employee: employee));
         },
       ),
 

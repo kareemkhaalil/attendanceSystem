@@ -19,6 +19,14 @@ import '../../domain/usecases/get_payroll_rules.dart';
 import '../../domain/usecases/create_payroll_rule.dart';
 import '../../domain/usecases/update_payroll_rule.dart';
 import '../../domain/usecases/delete_payroll_rule.dart';
+import '../../domain/usecases/get_payroll_regulation_usecase.dart';
+import '../../domain/usecases/update_payroll_regulation_usecase.dart';
+import '../../domain/usecases/get_employee_salary_profile_usecase.dart';
+import '../../domain/usecases/upsert_employee_salary_profile_usecase.dart';
+import '../../domain/usecases/get_employee_salary_component_ids_usecase.dart';
+import '../../domain/usecases/update_employee_salary_components_usecase.dart';
+import '../../domain/entities/payroll_regulation_entity.dart';
+import '../../domain/entities/employee_salary_profile_entity.dart';
 
 class PayrollCubit extends Cubit<PayrollState> {
   final GetPayrolls getPayrolls;
@@ -37,6 +45,14 @@ class PayrollCubit extends Cubit<PayrollState> {
   final GetClientsUseCase getClientsUseCase;
   final GetUsersUseCase getUsersUseCase;
 
+  // Phase 4 UseCases
+  final GetPayrollRegulationUseCase getPayrollRegulationUseCase;
+  final UpdatePayrollRegulationUseCase updatePayrollRegulationUseCase;
+  final GetEmployeeSalaryProfileUseCase getEmployeeSalaryProfileUseCase;
+  final UpsertEmployeeSalaryProfileUseCase upsertEmployeeSalaryProfileUseCase;
+  final GetEmployeeSalaryComponentIdsUseCase getEmployeeSalaryComponentIdsUseCase;
+  final UpdateEmployeeSalaryComponentsUseCase updateEmployeeSalaryComponentsUseCase;
+
   PayrollCubit({
     required this.getPayrolls,
     required this.getPayrollById,
@@ -53,6 +69,12 @@ class PayrollCubit extends Cubit<PayrollState> {
     required this.generatePayrollEntries,
     required this.getClientsUseCase,
     required this.getUsersUseCase,
+    required this.getPayrollRegulationUseCase,
+    required this.updatePayrollRegulationUseCase,
+    required this.getEmployeeSalaryProfileUseCase,
+    required this.upsertEmployeeSalaryProfileUseCase,
+    required this.getEmployeeSalaryComponentIdsUseCase,
+    required this.updateEmployeeSalaryComponentsUseCase,
   }) : super(const PayrollState());
 
   // ---- Payroll ----
@@ -201,7 +223,7 @@ class PayrollCubit extends Cubit<PayrollState> {
           status: PayrollStatus.failure, errorMessage: failure.message)),
       (updated) {
         final updatedList =
-            state.rules.map((r) => r.id == updated.id ? updated : r).toList();
+            state.rules.map<PayrollRuleEntity>((r) => r.id == updated.id ? updated : r).toList();
         emit(state.copyWith(
           status: PayrollStatus.success,
           rules: updatedList,
@@ -262,6 +284,75 @@ class PayrollCubit extends Cubit<PayrollState> {
           status: PayrollStatus.failure, errorMessage: failure.message)),
       (employees) => emit(
           state.copyWith(status: PayrollStatus.success, employees: employees)),
+    );
+  }
+
+  // ---- Advanced Payroll (Phase 4) ----
+
+  Future<void> fetchRegulation(String tenantId) async {
+    emit(state.copyWith(status: PayrollStatus.loading, message: null));
+    final result = await getPayrollRegulationUseCase(tenantId);
+    result.fold(
+      (failure) => emit(state.copyWith(
+          status: PayrollStatus.failure, errorMessage: failure.message)),
+      (regulation) => emit(state.copyWith(
+          status: PayrollStatus.success, regulation: regulation)),
+    );
+  }
+
+  Future<void> saveRegulation(PayrollRegulationEntity regulation) async {
+    emit(state.copyWith(status: PayrollStatus.loading, message: null));
+    final result = await updatePayrollRegulationUseCase(regulation);
+    result.fold(
+      (failure) => emit(state.copyWith(
+          status: PayrollStatus.failure, errorMessage: failure.message)),
+      (updated) => emit(state.copyWith(
+        status: PayrollStatus.success,
+        regulation: updated,
+        message: "تم حفظ الإعدادات بنجاح",
+      )),
+    );
+  }
+
+  Future<void> fetchEmployeeProfile(String userId) async {
+    emit(state.copyWith(status: PayrollStatus.loading, message: null));
+    final result = await getEmployeeSalaryProfileUseCase(userId);
+    result.fold(
+      (failure) => emit(state.copyWith(
+          status: PayrollStatus.failure, errorMessage: failure.message)),
+      (profile) async {
+        if (profile != null) {
+          final componentsResult = await getEmployeeSalaryComponentIdsUseCase(profile.id);
+          componentsResult.fold(
+            (f) => emit(state.copyWith(
+                status: PayrollStatus.success, salaryProfile: profile, selectedRuleIds: [])),
+            (ids) => emit(state.copyWith(
+                status: PayrollStatus.success, salaryProfile: profile, selectedRuleIds: ids)),
+          );
+        } else {
+          emit(state.copyWith(status: PayrollStatus.success, salaryProfile: null, selectedRuleIds: []));
+        }
+      },
+    );
+  }
+
+  Future<void> saveEmployeeProfile(EmployeeSalaryProfileEntity profile, List<String> ruleIds) async {
+    emit(state.copyWith(status: PayrollStatus.loading, message: null));
+    final result = await upsertEmployeeSalaryProfileUseCase(profile);
+    result.fold(
+      (failure) => emit(state.copyWith(
+          status: PayrollStatus.failure, errorMessage: failure.message)),
+      (updated) async {
+        await updateEmployeeSalaryComponentsUseCase(
+          UpdateEmployeeSalaryComponentsParams(profileId: updated.id, ruleIds: ruleIds),
+        );
+        emit(state.copyWith(
+          status: PayrollStatus.success,
+          salaryProfile: updated,
+          selectedRuleIds: ruleIds,
+          message: "تم حفظ الملف بنجاح",
+        ));
+      },
     );
   }
 }

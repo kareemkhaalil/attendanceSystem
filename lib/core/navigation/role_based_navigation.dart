@@ -182,6 +182,18 @@ class RoleBasedNavigation {
       ],
     ),
     NavigationItem(
+      titleKey: 'nav_landing_cms',
+      route: '/admin/landing',
+      icon: Icons.web_rounded,
+      allowedRoles: [UserRole.superAdmin],
+    ),
+    NavigationItem(
+      titleKey: 'admin_transactions',
+      route: '/admin/transactions',
+      icon: Icons.receipt_long_rounded,
+      allowedRoles: [UserRole.superAdmin],
+    ),
+    NavigationItem(
       titleKey: 'nav_settings',
       route: '/settings',
       icon: Icons.settings,
